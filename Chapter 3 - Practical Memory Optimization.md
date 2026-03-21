@@ -101,10 +101,8 @@ dependencies {
 ```
 
 After introducing LeakCanary and running the memory leak case in the sample program again, you can see that LeakCanary takes effect and automatically detects that a leak has occurred. After detecting the leak, it will capture the stack and send a reminder via the notification bar, as shown in Figure 3-10. Clicking on the notification bar will jump to the details page, as shown in Figure 3-11. Through the details page, we can see which objects are leaking and the reference chains that hold these objects. Since LeakCanary captures and analyzes the Hprof file when a memory leak occurs, this process can cause the program to become laggy, so LeakCanary is only recommended for use in test packages.&#x20;
-
-![Figure 3-10 LeakCanary Notification Alert](https://raw.githubusercontent.com/helsonzhao/THE_ART_OF_ANDROID_PERFORMANCE_OPTIMIZATION/main/assets/chapter3_img_9.png)
-
-![Figure 3-11 Memory Leak Details](https://raw.githubusercontent.com/helsonzhao/THE_ART_OF_ANDROID_PERFORMANCE_OPTIMIZATION/main/assets/chapter3_img_10.png)
+|![Figure 3-10 LeakCanary Notification Alert](https://raw.githubusercontent.com/helsonzhao/THE_ART_OF_ANDROID_PERFORMANCE_OPTIMIZATION/main/assets/chapter3_img_9.png)| ![Figure 3-11 Memory Leak Details](https://raw.githubusercontent.com/helsonzhao/THE_ART_OF_ANDROID_PERFORMANCE_OPTIMIZATION/main/assets/chapter3_img_10.png) |
+| :---: | :---: |
 
 ### 2. Principle of LeakCanary
 
