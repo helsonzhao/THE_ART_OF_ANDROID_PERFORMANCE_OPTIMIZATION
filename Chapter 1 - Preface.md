@@ -1,657 +1,173 @@
-When doing anything, we first need to know the value of doing it, so that we have the motivation to do it well. So what is the value of memory optimization? There are mainly two aspects:&#x20;
+# 1.1 Why This Book Was Written
 
-1. When memory usage is high, processes may be forcibly terminated by the system's Low Memory Killer (LMK) mechanism. In more severe cases, an Out Of Memory (OOM) exception may occur, causing the program to crash. Therefore, performing memory optimization can improve the stability of the program.&#x20;
+Android Performance optimization is a very important area, and its importance is reflected in two aspects: helping applications bring greater value and helping Android developers enhance their professional competitiveness.
 
-2. When memory usage is high, the Android Virtual Machine will frequently perform GC (Garbage Collection), or the Linux system will frequently perform paging. These processes will consume a significant amount of CPU resources, causing the application to become laggy. Therefore, optimizing memory can improve the smoothness of the program.&#x20;
+In terms of enhancing the value of a program, performance optimization can reduce program instability, improve user experience such as running speed and smoothness, thereby increasing customer satisfaction score, boosting user retention rate, and promoting business growth. For medium and large companies, each program has a dedicated performance quality team responsible for optimizing program performance, which fully demonstrates the importance of performance optimization in enhancing program value.&#x20;
 
-It can be seen that the value of memory optimization is very obvious. In order to better carry out memory optimization, in this chapter, we will have a comprehensive and in-depth understanding of memory-related knowledge from the Linux system to the Android system. After having a certain knowledge reserve, we can then start to build a methodology for memory optimization. With the support of methodology, we can naturally carry out systematic and effective memory optimization.&#x20;
+For Android developers, proficiency in performance optimization can enhance our competitiveness and bring us better performance in the workplace. In daily work, business requirements rarely reflect the gap in individual technical capabilities. However, if we can bring more value to the business through our performance optimization skills beyond the development of business requirements, we will naturally gain more recognition. In interviews, performance optimization is also a topic that is bound to be tested. It is a manifestation of a developer's technical strength. For developers who are good at performance optimization, they can also stand out in interviews and increase the success rate of the interview.&#x20;
 
-# 2.1 Virtual Memory
+The importance of Performance optimization is self-evident. Therefore, there are many articles on Performance optimization on the Internet, and there are also quite a few books on Performance optimization on the market. However, most of these articles and books merely explain individual specific Performance optimization cases. After reading these cases, we only know what to do in the same scenario. But in actual development, the scenarios we face are diverse and complex, including diverse business types and various performance hardware. Therefore, in many cases, we may not know where to start because we cannot find an optimization solution for the same scenario online, or we may find that the optimization effect is poor after referring to others' solutions, or we may enthusiastically propose an optimization solution but be questioned and refuted by others and thus unable to implement it.&#x20;
 
-## 2.1.1 Why Virtual Memory is Needed
+To do a good job in Performance optimization, it is completely insufficient to simply learn some fragmented optimization solutions from others through blogs or other means. We need to have a solid and systematic grasp of knowledge points from multiple levels such as the hardware layer, system layer, and application layer. Therefore, I wrote this book not only to focus on explaining some specific practical cases of Performance optimization, but also to delve into the knowledge system required for Performance optimization, and strive to build a methodology for Performance optimization based on this knowledge system and experience cases, helping readers achieve thorough understanding, draw inferences from one instance, and truly master Performance optimization.
 
-The operating systems we use daily all support running multiple programs simultaneously. From a technical perspective, this is not an easy feat to achieve. To support this feature, many issues need to be overcome. Here, I list a few of the most typical problems:&#x20;
+# 1.2 How to do a good job in Performance optimization
 
-* Memory address isolation issue
+Before explaining the main content of this book, I would like to first explain how to do a good job in performance optimization. The subsequent content of this book is all centered around how to do a good job in performance optimization. Therefore, we need to have an overall understanding of how to do a good job in performance optimization so that we can learn more directionally and purposefully later.&#x20;
 
-  For an operating system, applications cannot directly access real memory (also known as physical memory). If applications had such permissions, the memory addresses used by different applications would not be isolated from each other, and at this time, both malicious and non-malicious programs could easily overwrite the memory data of other programs, leading to serious problems such as data security issues or program crashes in the programs whose memory data has been overwritten.&#x20;
+## 1.2.1 The essence of Performance optimization
 
-  Therefore, the operating system prohibits applications from directly accessing physical memory and creates an "intermediate layer" for each application process. Each process can only read and write data within its own unique "intermediate layer", and then the system maps the data in the "intermediate layer" to physical memory. In this way, different processes each have their own independent memory address space, can run independently without interfering with each other, thereby achieving memory address isolation between programs.&#x20;
+When doing anything, if we don't understand its essence, it is difficult for us to formulate truly effective solutions. Therefore, understanding the essence of performance optimization is a very important thing. So, what is the essence of performance optimization? I believes that the essence of performance optimization is "to improve the program experience and achieve benefits by making full and reasonable use of the device's hardware resources".&#x20;
 
-* Memory usage efficiency issue
+**1) Fully and reasonably utilize hardware resources**
 
-  To ensure the efficiency of program execution, the address space of programs loaded into memory is always contiguous. However, the capacity of memory is limited, so it is very likely that after loading a few programs, there will be no large contiguous blocks of memory available for the next program. At this point, if we want to continue executing a new program, we can only temporarily write the data of the previous programs back to the disk and read it back when needed later. During this process, there is a large amount of data swapping in and out, and the execution efficiency and performance of the program will naturally be very low. Therefore, if we want to improve the efficiency of memory usage, programs need to be able to use non-contiguous memory addresses, which conflicts with the execution efficiency of programs.&#x20;
+We all know that the purpose of performance optimization is to achieve a better program experience, but how can we achieve a better experience? We can come up with many solutions without hesitation, such as using preloading, multi-threading, caching, and so on. But can these solutions really improve the program experience? The answer is uncertain. They may have a positive effect, but they may also have no effect, or even have negative effects. Why? We need to consider this issue from the perspective of hardware resources.&#x20;
 
-  Therefore, the operating system creates a contiguous "intermediate layer", where all the data of the program is loaded, and then the system maps the contiguous addresses of the "intermediate layer" to non-contiguous physical memory addresses.
+If the current CPU usage of the program is already high, using preloading tasks and multi-threaded concurrent execution of tasks will undoubtedly be a counterproductive operation, bringing no optimization but rather degradation. Only when CPU usage is insufficient can we achieve better optimization results by using these optimization schemes. If the current memory usage is already high, using more caches will only cause the system to frequently trigger GC and may even lead to OOM crashes. In many cases, the reason for poor results in Performance optimization is that when formulating optimization schemes, we do not think based on the essence of Performance optimization. Only when we formulate optimization schemes based on the essence of making full and reasonable use of hardware resources can we confidently say that optimization is effective.&#x20;
 
-* Address stability issue
+Hardware resources include CPU, memory, disk, power, etc. Since the hardware resources of different devices vary, when we conduct Performance optimization based on the essence, the proposed solutions will be different from the previous ones.
 
-  When a program is running and wants to execute a certain function, it first needs to know the address of this function in memory. If the program is directly loaded into physical memory, it is very likely not loaded starting from address 0, but rather starting from an address somewhere in the middle. In this case, the address of the function is uncertain.&#x20;
+* CPU: When conducting performance optimization based on how to use the CPU reasonably and fully, we need to adopt different optimization strategies for CPUs with different performance levels. For mid- and low-end devices, due to the poor CPU performance, CPU usage can easily become overloaded. At this time, we need to consider reducing CPU consumption to use CPU resources reasonably. Common strategies include reducing the number of threads, reducing and shutting down preloading tasks, etc., and allocating more CPU resources to the main thread or core scenarios. For high-end devices, with good CPU performance, our optimization strategy is often how to make full use of CPU resources. Therefore, the optimization strategy at this time is just the opposite of that for mid- and low-end devices, and we can use more threads to execute tasks concurrently and use more preloading tasks to enhance the user experience.
 
-  To solve the problem of uncertain function addresses, the operating system still assigns an independent "intermediate layer" to each process, and the addresses of this "intermediate layer" all start from zero. Since programs can only be loaded into this "intermediate layer", we can ensure that programs are always loaded starting from address zero, so the addresses of functions will not change and can be determined during the compilation phase.
+* Memory: When performing performance optimization based on how to use memory resources reasonably and fully, we need to set different cache sizes according to the size of memory resources. For devices with large memory, more data can be cached, while for devices with small memory, the amount of cached data should be reduced. The size of cached data should always be controlled within a reasonable range, so as to ensure that the performance of the program can be improved by fully utilizing memory resources, but without causing stability issues such as OOM (Out Of Memory) due to excessive memory usage.&#x20;
 
-From the above several typical problems, we can see that in order to solve these problems, operating systems all solve them by creating an "intermediate layer", which is virtual memory. It can be said that virtual memory is one of the most important technologies in modern operating systems.&#x20;
+Through the two examples above, have we noticed that optimization plans formulated based on the essence are more effective?
 
-## 2.1.2 What is virtual memory?
+**2) Obtain benefits**
 
-So what is virtual memory? And how does virtual memory solve the various problems mentioned in the previous section? Let's continue reading.
+Developing and optimizing solutions is only part of the work in Performance optimization. There is another equally important thing we need to do, which is how to achieve benefits? This requires us to do two things: one is how to define metrics, and the other is how to collect metrics.
 
-Virtual memory technology is equivalent to allocating each process a exclusive and contiguous block of memory, except that this memory is virtual. The simplified model of virtual memory is shown in Figure 2-1. From the simplified model diagram, it can be seen that each process has its own unique virtual memory, which consists of system space and user space. The kernel space stores the operating system's data, and this data is the same across all processes, all mapped to the same physical memory segment; the user space stores the application's data. When an application writes data to the address of its corresponding virtual memory, the operating system will map the virtual address space to the actual physical memory address, and data can be written after the mapping is completed.&#x20;
+* Develop metrics
 
-![Figure 2-1 Simplified Model Diagram of Virtual Memory](https://my.feishu.cn/space/api/box/stream/download/asynccode/?code=MDMwM2JiODY3MWViNWRkZDdjNTFmZDcwMzMwZmU5MDNfVXJlNTUxTWhWMk94d1M2V1R1WHR4eUxjTGhydWxvSmJfVG9rZW46QVRJdGJVcVNRb1lmRWF4NjR4MmNRVG9MbmhkXzE3NzQxMjMyNzA6MTc3NDEyNjg3MF9WNA)
+Since we aim to achieve benefits, the first step is to establish metrics. We usually select common performance metrics to measure the effectiveness and benefits of our optimization. For example, metrics for measuring speed include startup speed, page load speed, etc.; metrics for measuring memory include PSS (the actual physical memory occupied by the program in the system), Java memory usage, Native memory usage, etc.; metrics for measuring stability include Crash rate, OOM rate, etc. However, when selecting these metrics, we need to further consider whether they can truly reflect the benefits.
 
+For example, when performing memory optimization, we are likely to choose the PSS metric to measure the benefits of memory optimization. After a series of optimizations, we successfully reduced PSS by 100 MB. At this point, we are likely to think that our optimization has brought good benefits. However, in reality, it is uncertain whether the program's performance is better or worse after PSS is reduced by 100 MB. It is possible that because we reduced cached data, PSS decreased by 100 MB, and at this time the opening speed of some pages of the program slowed down, resulting in a degraded performance experience; it is also possible that due to the reduction of 100 MB of PSS, the OOM rate of the program decreased significantly, resulting in an improved performance experience.&#x20;
 
+However, if we change the metrics for memory optimization from PSS value to metrics such as OOM rate and number of GC (Garbage Collector) cycles, we can clearly measure the quality of the program experience. Optimizing these metrics is the benefit of our performance optimization efforts. Therefore, when formulating performance optimization metrics, we should truly select those that can genuinely reflect the user experience and benefits of the program.&#x20;
 
-The size of virtual memory is 2^32 bytes, i.e., 4GB, on a 32-bit system; on a 64-bit system, it is 2^48 bytes, i.e., 16TB. The reason it is not 2^64 ByteDance is that 2^48 bytes is already large enough, and the space of 2^64 bytes would only cause the system to consume more resources to maintain and manage this space. Virtual memory is managed and mapped to physical memory on a page basis, with each page being 4KB in size.&#x20;
+* Collection metrics
 
-Here, I assumes a scenario where a 32-bit system has only 2GB of physical memory, and uses the mapping model of virtual memory and physical memory as an example to help readers better understand. This scenario is shown in Figure 2-2, where the 4GB virtual memory is divided into 4194304 pages, each with a size of 4KB. When a page in virtual memory needs to write data, it maps a 4KB block of physical memory; if a page in virtual memory does not write data, no mapping occurs. The address mapping from virtual memory to physical memory is completed by the  memory management  unit (MMU) of the computer, which belongs to the hardware rather than the system software, so the mapping speed is very fast.&#x20;
+Once we have established the metrics, the second step is to collect them. When collecting metrics, we need to ensure accuracy, consistency, and minimize the performance impact of data collection.
 
-![Figure 2-2 Mapping Model of Virtual Memory and Physical Memory in a 32-bit System](https://my.feishu.cn/space/api/box/stream/download/asynccode/?code=YzZkOGFmYmVkNGY2YWQ5NDYzNzdlMzZlZGQ0N2YxMDRfcWw4T2hiZ3lpUnBoVWlzUFY5VjBjYWpqbklVcWk1cmxfVG9rZW46VWRNUWJpMWl4b0JWNFF4cHllamNFeVhhbnJnXzE3NzQxMjMyNzA6MTc3NDEyNjg3MF9WNA)
+Accuracy is something we all understand, which means that the collected performance metrics must be accurate. So what is consistency? There are many metrics that are relatively subjective, such as page load speed. This metric involves the selection of the end point of page loading. Under what circumstances is page loading considered complete? There is no standard answer. We can consider the completion of rendering of certain key components as the end point, or the display of most of the UI as the end point, or simply the completion of the first frame rendering as the end point. We need to combine the characteristics of our own program, select a point that everyone can agree on as the end point, and always use this point as the end point in the future, without changing it after just two versions. In Performance optimization, metrics are a very important matter, so their benchmarks need to always remain consistent. If the standards are constantly changing, then the benchmarks become meaningless, and we will not be able to clearly compare whether different versions have been optimized or degraded.
 
+During the indicator collection process, we also need to pay attention to the impact of the collection itself on performance. Many indicators require IO operations, such as memory-related data and CPU-related data. Read and write IO operations themselves are resource-intensive, so we need to control the frequency well and minimize the performance loss as much as possible.
 
+## 1.2.2 Dimensions of Performance Optimization
 
-## 2.1.3 ELF Files
+Having understood the essence of performance optimization, we are already able to design effective optimization solutions, but this does not mean that we can design more systematic optimization solutions. After all, performance optimization is a vast topic. At this point, we may have some fragmented ideas, but our solutions cannot be systematic and comprehensive. Only a systematic and comprehensive optimization solution can achieve the best optimization results and bring the greatest improvement to the program experience. As shown in Figure 1-1, to create a systematic optimization solution, we still need to proceed based on the three dimensions of application layer, system layer, and hardware layer.&#x20;
 
-Previously, we have learned that virtual memory consists of data from two parts: user space and kernel space. The kernel space stores operating system data, and this space is not accessible for applications to operate on. Applications can only operate on user space. Therefore, in this section, we will continue to gain a further understanding of user space.
+1. **Application layer**
 
-All files that an operating system can execute must conform to a certain format. For example, in the Windows system,.exe program files and.dll library files are all in the PE (Portable Executable) file format. In Linux, executable files, including .o relocatable files and .so library files, are all in the ELF (Executable and Linkable Format) file format. When the system needs to execute a program, it first loads the data in the program into the virtual memory block of the user space. Therefore, to understand what data exists in the user space, we need to first understand the ELF file format, as shown in Figure 2-3:&#x20;
+The application layer mainly refers to the programs we develop, and optimization targeting the application layer is the most common type of optimization carried out by developers. When performing optimization, we usually understand the business logic and then optimize through means such as multi-threading, preloading, and caching. However, just doing this will result in very limited optimization effects. We need to think based on the essence of performance optimization, that is, how to fully and reasonably utilize hardware resources. Therefore, optimization targeting the application layer usually has two directions: one is how to enable the business to make more full use of hardware resources such as CPU and cache to enhance the experience; the other is how to manage and control the business side to use these resources reasonably.&#x20;
 
-![Figure 2-3 ELF File Format](https://my.feishu.cn/space/api/box/stream/download/asynccode/?code=OGVjMWM4YmQ0ODlhYTNiY2RiMzhjNjUyYjljMmRkZWVfV0hqeHhyYktPY29iVzdCTGIxMXhPYlNvVHFGZzRQSFhfVG9rZW46R24zNWJkMklEb0dJUlh4VkFCVWNNa1hZblRoXzE3NzQxMjMyNzA6MTc3NDEyNjg3MF9WNA)
+Therefore, to achieve better results, we not only need to understand and be familiar with each business logic, but also clearly know the resource consumption of each business, such as how much memory resources each business consumes, how much CPU resources each business consumes, how many threads each business uses, etc. Only after we have thoroughly understood all these aspects can we start optimization. For large-scale applications, with numerous businesses, resource consumption is often overloaded, and our optimization plan mainly focuses on how to allocate and manage the resource usage of businesses. Therefore, we can use frameworks such as the startup framework, preloading framework, and degradation framework to constrain and manage the resource usage of business parties. For small and medium-sized applications, with fewer businesses, resource consumption is often insufficient, so we can use more preloading tasks, multi-threading, and other solutions to improve resource utilization.&#x20;
 
+* **System Layer**
 
+The system layer refers to the Android system and Linux system, and optimizing the system layer is much more difficult than optimizing the application layer. This is because optimizing the system layer requires familiarity with system knowledge, and understanding the principles and characteristics of the Android and Linux systems is far more complex than understanding the business logic of our own programs. Secondly, since we cannot directly control the logic of the system layer, we often need some complex techniques, such as Native Hook technology, to modify some system logic in order to achieve the goal of optimization.&#x20;
 
-&#x20;An ELF file generally consists of an ELF Header, a Program Header Table, a Section Header Table, and multiple Sections, and their explanations are as follows:&#x20;
+Optimization at the system level usually focuses on reducing resource consumption caused by the system itself. For example, when the system is performing GC, frequent thread switching, frequent page faults, and page replacement all consume a large amount of CPU resources. Therefore, our optimization strategy is to reduce the resource consumption of these system logics or mitigate their impact on applications during execution.
 
-| ELF Header            | The ELF header is the first part of an ELF file, containing basic information about the file itself, such as file type, segment header table, entry point address, offset address of the program header table, etc.                                                                                                                                                                                                                                                                  |
-| --------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| Data Segment          | A unit used to organize and store specific types of data. Different Sections contain different types of data, such as code, data, symbol tables, relocation tables, string tables, etc., which will be introduced in detail later.                                                                                                                                                                                                                                                   |
-| Segment Header Table  | An ELF file generally has only one section header table, which records the attributes of all data section (Section) information, such as name, size, offset, alignment, etc.                                                                                                                                                                                                                                                                                                         |
-| Program Header Table  | The program header table reorganizes data segments according to their attributes or purposes. For example, segments with the same read-write permissions are grouped together, and this newly organized structure is called a program section. An ELF file may contain multiple program header tables. When the system loads an ELF file, it organizes and loads the corresponding data into memory according to the data segment information recorded in the program header table.  |
+Although optimization at the system level is much more complex than that at the application level, fortunately, optimizations at the system level are generally universal, so we can fully draw on and reuse some solutions, such as performing GC suppression during startup and designing a reasonable thread pool.&#x20;
 
-Let's continue to take a detailed look at these two parts: the data segment and the program segment.
+* **Hardware layer**
 
-### 1. Data Segment
+Optimization for the hardware layer mainly involves understanding the characteristics of the hardware and then identifying optimization points. Most optimization solutions for the hardware layer are targeted at the two hardware features of CPU and cache.
 
-By using the readelf tool provided in the Android NDK, execute the command "readelf -S xxx.so" to read the data segment information of the libart library. As shown in Figure 2-4, it can be seen that the art virtual machine library file has more than 30 data segments.&#x20;
+For example, if the CPU consists of big and small cores, with the big core having a high operating frequency and the small core having a low operating frequency, we can run the main thread on the big core; if the manufacturer provides a corresponding overclocking API interface, we can also increase the CPU frequency in core scenarios to improve performance.&#x20;
 
-![Figure 2-4 Segment Information of libart.so Library File ](https://my.feishu.cn/space/api/box/stream/download/asynccode/?code=ZDUyYTUxYWZiNzM3MjJlODNjODUyNGQyNTRhZDNhYzJfbDNYSUFIYTdLNzRIdHNaRnZjdE1zcUZ2SnZncjhEVGJfVG9rZW46UlpZZmJCa3J3bzRYR1N4SE5mRWNXdFdibmxvXzE3NzQxMjMyNzA6MTc3NDEyNjg3MF9WNA)
+The architecture of the cache consists of multi-level caches, memory, and disks. When optimizing this hardware, we can consider how to improve the hit rate of the cache and the hit rate of the memory cache.&#x20;
 
-Since the number of sections is relatively large, we will only introduce some of the most common data sections here:
+## 1.2.3 Difficulties in Performance Optimization
 
-* Code Segment (.text) :&#x20;
+By now, we already know the essence and dimensions of doing well in performance optimization. However, at this point, we only know where the road ahead lies. To reach the destination, we still need to keep moving forward and overcome the numerous obstacles encountered along the way. The obstacles on this road, which are also the difficulties of performance optimization, are mainly reflected in these four aspects: knowledge reserve, perspective of thinking, way of thinking, and a complete optimization closed-loop.&#x20;
 
-  Contains the machine instructions of an executable program. During runtime, the contents of this segment are loaded into memory and executed by the processor. The code segment typically has executable and read-only permissions.&#x20;
+1. **Knowledge reserve**
 
-* Data Segment (.data) :&#x20;
+To do a good job in performance optimization, the first difficulty is the need to master a complete and systematic knowledge. As we learned earlier, performance optimization should be carried out from three dimensions: application layer, system layer, and hardware layer, which means we also need to solidly master the knowledge points of these three levels.
 
-  contains the initial values of the program's global and static variables. During runtime, the contents of this segment are loaded into a memory area that can be read from and written to. Therefore, the data segment usually has read and write permissions.&#x20;
+* Application layer
 
-* BSS Segment（.bss, Block Started by Symbol) :&#x20;
+The more we want to achieve good results in performance optimization for the application layer, the more we need to have a better understanding of the applications we develop. We need to know which threads our responsible APP has, what they do, which business uses them, and the CPU consumption of these threads; how much memory is occupied, which business occupies it, and what the cache hit rate is; what tasks are performed during the startup process and the opening process of core pages, how long the IO blockage takes, how long the logic takes, and what CPU usage is.&#x20;
 
-  Uninitialized global and static variables used to store programs. At runtime, the contents of this segment are initialized to 0 or null. BSS segments usually have read and write permissions
+* System Layer
 
-* Read-only Data Segment (.rodata):&#x20;
+Compared to the knowledge points at the application layer, those at the system layer are even more extensive and complex. For example, Linux knowledge includes process management and scheduling, memory management, virtual memory, locks, IPC communication, etc.; Android system knowledge includes virtual machines, core services such as AMS (ActivityManagerService), WMS (WindowManagerService), etc., rendering, and some core processes such as startup, opening an Activity, installation, and so on.
 
-  contains read-only constant data in the program, such as string constants, constant tables, etc. During runtime, the content of this section is loaded into memory and has read-only permissions.&#x20;
+Performance optimization at the system level must be based on our understanding of the system's mechanisms and processes. If we do not understand the process scheduling mechanism of the Linux system, we cannot fully utilize process priority to help us improve performance; if we are not familiar with the Android virtual machine, then some related optimizations around this virtual machine, such as OOM optimization or GC optimization, cannot be well carried out and implemented.
 
-* Debug Information Section (.debug):&#x20;
+* Hardware layer
 
-  contains information for debugging and symbol resolution, such as source code line numbers, variable names, function names, etc. This section is typically stripped in release builds to reduce file size.&#x20;
+For the hardware layer, we need to be familiar with the characteristics of hardware such as CPU,  cache, etc.  If we know how many cores a CPU consists of, which are big cores, and which are small cores, we will naturally think of whether we can improve performance by binding core threads to big cores; if we understand the design of registers, caches, and main memory in the storage structure, we will naturally consider whether we can improve performance based on this characteristic, such as placing core data in the cache as much as possible to improve performance.&#x20;
 
-* Dynamic Table (.dynamic):&#x20;
+* Other
 
-  This paragraph mainly contains information about external dependency libraries, such as the names of external libraries, the addresses of external library functions, and other information.&#x20;
+In addition to the knowledge in the three aspects mentioned above, if we want to make further progress in performance optimization, we also need to master more knowledge, such as assembly, compilers, programming languages, reverse engineering, etc. For example, writing code in C++ runs faster than in Java, and we can improve performance by replacing some business logic with C++; for example, by optimizing compiler inlining, dead code elimination, and other solutions to reduce package size; for example, by using reverse engineering techniques to optimize system logic and make the program perform better.&#x20;
 
-* Symbol Table (.symtab) :&#x20;
+It can be seen that mastering performance optimization requires a vast knowledge reserve, so performance optimization is highly indicative of a developer's technical depth and breadth. Whether in interviews or at work, if we are proficient in performance optimization, it will surely add significant value to us.&#x20;
 
-  This section mainly contains symbol information in the program. Symbol information includes the name, type, size, value, segment, etc. of symbols, which can be used for debugging, linking, disassembling, and other purposes. In the later chapters of this book, some technical solutions will use symbols, so here we will focus on explaining what symbols are. When a compiler compiles C++ source code into an object file, it will decorate the names of functions and variables to generate corresponding symbol names. Depending on the compiler, the generated symbols will also vary. The following table shows the compilation of the following functions and their corresponding symbols using the GCC compiler.&#x20;
+* **Angle of thinking**
 
-  | function            | Symbol Name      |
-  | ------------------- | ---------------- |
-  | int func(int)       | \_Z4funci        |
-  | float func(float)   | \_Z4funcf        |
-  | int Test::func(int) | \_ZN4Test4funcEi |
+When dealing with a complex and large-scale matter, we should first perform layering and classification. Different layers and categories represent different perspectives. For example, when designing the architecture of a client program, a layered architecture is usually adopted, where the logic and responsibilities of different layers vary; when conducting performance optimization of a system, we can optimize it from the application layer, system layer, and hardware layer respectively, and the optimization schemes for each layer also differ.&#x20;
 
-  I takes the function int Test::func(int) as an example to explain. When GCC generates symbols for methods, they all start with \_Z. For nested names, N follows immediately, then the lengths and names of each namespace and class, so it's 4Test4func, and ends with E. Non-nested method names do not need to end with E. Finally, it's followed by the parameter types. So the symbol for this function is \_ZN4Test4funcEi. These symbol information will be bound to corresponding attributes such as types, information, addresses, etc., to form symbol entries and stored in the symbol table. The symbol table can mainly help us debug and locate problems during program execution. However, for the sake of package size and security, we often remove the symbol table from the so library during online runtime.&#x20;
+In addition to thinking from different perspectives inherent in the matter itself, we can also obtain more inspiration by stepping outside the matter itself. For example, by thinking outside the current device, we can consider whether other devices can help us accelerate startup. Google Play (Google's app store) has similar optimizations. Google Play uploads some machine code that has already been compiled on other devices, and when the same device downloads this app, it also downloads this compiled machine code. Another commonly used technique is server-side rendering, which allows the server to pre-render the interface and then directly load static modules to improve page loading speed. Or, from the user's perspective, we can think about what optimizations are beneficial to the user's perception. For example, sometimes when optimizing startup and page loading speed, we give the user a fake static page to make them feel that the page has already opened, and then bind the real data.&#x20;
 
-### 2. program segment
+When performing performance optimization, the more comprehensive the perspectives considered, the more effective and numerous our optimization solutions will be.&#x20;
 
-We then use the readelf tool to execute the command "readelf -l libart.so" to read the program segment information of the libart library. As shown in Figure 2-5, we can see that the art virtual machine library file organizes the above 31 data segments (Section) into 9 program segments (Program Segment)
+* **Way of thinking**
 
-![Figure2-5 Program Segment Information in art Library](https://my.feishu.cn/space/api/box/stream/download/asynccode/?code=ZWIwMzdmYzkyZDNkNTdlOGMyZDU4OTc5ZGU2MGQ2N2NfQlc5T05LbWF3UFhJQ2ZpQ2l4MG51WFZkNVM0dzlTZnJfVG9rZW46WFQzNmJLenRZb282WE54SjVSNGNMNHBTbkhnXzE3NzQxMjMyNzA6MTc3NDEyNjg3MF9WNA)
+When dealing with complex matters, we need to divide them into different perspectives. With more perspectives, there will be more solutions. But how should we divide these perspectives? What if we just can't come up with them? In fact, all these are related to our way of thinking. Through different ways of thinking, we can obtain different perspectives. The most common ones are top-down and bottom-up thinking.&#x20;
 
-### 3. Structure of Virtual Memory
+* Top-down
 
-When the system executes a program file in ELF format, it loads the data segments in the ELF file into virtual memory in the order organized by the program headers and places them in the low-address area, i.e., the area where the virtual memory address starts from 0.&#x20;
+The top-down thinking approach is a way of thinking that gradually breaks down from the whole to the parts and tackles each part individually. In the performance optimization of large-scale applications, top-down is a very common approach. Large-scale applications have a large number of business operations, and the teams for different business operations vary. Therefore, when we conduct performance optimization, we need to consider from the overall perspective how to manage and allocate the consumption and use of resources by business operations. We can design some global frameworks to manage the use of resources by business operations, such as preloading frameworks and degradation frameworks; design some global monitoring mechanisms to measure the use of resources by business operations. After we have overall management and monitoring, we can then move on to the local perspective and optimize each business operation that consumes a large amount of resources one by one.&#x20;
 
-After storing the data of the ELF file, the stack space and heap space follow. Among them, the stack space is automatically allocated and released by the compiler, and is used to store the parameter values, local variables, execution instructions, etc. of functions during function execution. The heap space is used for dynamic memory allocation and can be allocated and released by developers themselves, mainly implemented by the malloc and free functions. However, when developing Android applications through Java or Kotlin, we do not need to manually allocate and release the memory of the heap space, as the virtual machine program has already done it for us. The allocation address of heap memory is from bottom to top, and the allocation address of stack memory is from top to bottom. This way of opposite allocation can make full use of memory space, because if both the heap space and stack space allocate memory in the same direction, the size of the heap space must be limited to a fixed size to prevent the address from exceeding the bounds of the stack space when the heap space requests memory.&#x20;
+* Bottom-up
 
-Above the stack space is the system space, which is used to store operating system data. As shown in Figure 2-6, it is a structural model diagram of the ELF file and virtual memory in a 32-bit system. Through this model diagram, we can have a clearer understanding of the structure of virtual memory.
+The bottom-up thinking approach is just the opposite, starting from details or underlying principles and gradually building up the overall solution step by step. For example, when we perform performance optimization, we directly consider factors such as the CPU and cache that affect speed, think about how to improve CPU utilization and cache hit rate, and conduct in-depth analysis from the hardware layer, system layer, and application layer bottom-up to construct a comprehensive optimization plan.&#x20;
 
-![Figure 2-6 Structural Model Diagram of ELF Files and Virtual Memory](https://my.feishu.cn/space/api/box/stream/download/asynccode/?code=NjFkYjk5M2NkNDg4MGQ0NDNmMGM0ZTM3OWM0YmMxM2JfcDQxVDhFNTBpM1ltRURzY3hRUHZTT3pIcnNrNmZRRlRfVG9rZW46SDZ3TWIyYXM0b3llV0F4YnVsMGNVSUlmbkpjXzE3NzQxMjMyNzA6MTc3NDEyNjg3MF9WNA)
+Different ways of thinking will ultimately lead us to design different optimization solutions, but it doesn't mean that one way of thinking is superior to the other. When facing complex problems, we need to try using different ways of thinking to think about and solve the problem.&#x20;
 
+* **Optimized process**
 
+In the actual process of Performance optimization, how to optimize is only one part of it. We also need to do more, as shown in Figure 1-2, including monitoring, optimization, data benefit acquisition, and anti-deterioration. These parts form a closed loop to constitute a complete optimization process. During Performance optimization, we need to consider and do well in all aspects.&#x20;
 
-## 2.1.4 Virtual Memory Allocation and Deallocation
+* Monitoring: That is, monitoring various performance indicators during the application's operation. To do a good job in monitoring, in addition to minimizing the performance overhead caused by monitoring logic, it is also necessary to monitor the root causes as much as possible. For example, in memory monitoring, besides monitoring the memory indicator data of the application, it should also be able to monitor the memory usage proportion of each business, as well as root cause items such as large collections, large images, and large objects. In this way, we can directly pinpoint the problem through monitoring. A complete and excellent monitoring solution enables us to more efficiently detect and resolve anomalies.
 
-Applications cannot directly operate on physical memory, and they are unaware of physical memory. The only memory that applications deal with is virtual memory. Therefore, during the development of our programs, the memory allocated or requested is actually virtual memory. So how do we request virtual memory? What processes are involved? Let's continue reading.&#x20;
+* Optimization: Many developers may think that performance optimization is simply optimization, but in fact, optimization is only one aspect of performance optimization, not the entirety of it. The reason we have such a misunderstanding is often because we lack a systematic understanding and awareness of performance optimization.&#x20;
 
-When developing Android applications, if we are doing Native development, we need to manually allocate or free memory. However, if we are only writing code at the Java layer, we do not need to allocate memory ourselves. When creating objects, declaring variables, constants, etc., the virtual machine will automatically allocate memory for these data. And after use, we do not need to free it ourselves; the virtual machine will automatically free this memory. The way the virtual machine allocates and frees memory is the same as the way we allocate and free memory in Native development, both using the malloc function to allocate appropriate memory for data in the heap space and freeing this block of memory through the free function after the data is used up.&#x20;
+* Data Benefit Acquisition: This stage is not simply about observing changes in indicators; we need to learn how to conduct A/B tests and focus on indicators of core value. For example, when performing memory optimization, we cannot blindly pursue reducing the PSS occupancy of application memory. The amount of memory occupancy does not necessarily represent the real User Experience. Therefore, when optimizing memory, we should preferably combine indicators that reflect the core value of the experience, such as memory peak hit rate, crash rate, user retention, etc., to obtain the benefits and value of memory optimization.
 
-### 1. malloc function
+* Anti-deterioration: There are also many things that can be done for anti-deterioration, such as establishing a comprehensive offline performance test and online monitoring alarms. Taking memory optimization as an example again, we can run memory leak tests daily offline through Monkey and address them in advance, which is anti-deterioration work.
 
-Let's first take a look at the malloc function, which is very simple. When calling it, we only need to pass in the size of the memory we want to allocate. If the allocation is successful, it will return the address of a void\* pointer; if it fails, it will return NULL.
+# 1.3 Features and Main Content of This Book
 
-```c++
-void *malloc(size_t size)
-```
+In the previous section, I explained the essence, dimensions, and difficulties of performance optimization. The characteristic of this book is to help readers overcome the difficulties in the process of performance optimization, and based on the essence of performance optimization, carry out practical optimization from multiple dimensions. Therefore, this book will systematically explain the knowledge system required for each performance optimization direction, which covers from the hardware layer, operating system layer to the application layer. Based on this knowledge reserve, I will also construct the methodology for optimizing this performance direction, which is a profound manifestation of our ability to have diverse thinking perspectives, complete thinking methods, and a complete optimization process. Finally, I will strengthen our consolidation of the knowledge system and mastery of the methodology through specific optimization cases from multiple dimensions such as the application layer, system layer, and hardware layer in the monitoring, optimization, and anti-deterioration processes.&#x20;
 
-The malloc function is a function in the C language library, so when it allocates memory, it ultimately has to call functions provided by the Linux system, allowing the Linux kernel to help us allocate a block of memory. The kernel will execute different allocation strategies based on the size of the requested memory, mainly two strategies.&#x20;
+The content of this book includes comprehensive Performance optimization topics such as memory optimization, speed and fluency optimization, stability optimization, package size optimization, as well as power consumption optimization, disk usage, and traffic optimization. Most of these topics are divided into a theory section and a practical section. The theory section mainly explains the basic knowledge, while the practical section, based on the basic knowledge, further explains optimization cases and the technologies and principles used in these cases.&#x20;
 
-1\) If the requested memory is less than or equal to 128KB, the kernel will call the sbrk() function to request memory. sbrk() will move the heap top pointer towards higher addresses to obtain new virtual Memory Space. This method is simpler and more efficient when allocating and freeing memory;
+The knowledge points related to the Android system in this book are mainly explained based on Android 14 However, when performing performance optimization, considering compatibility, we often need to base it on each system version. Therefore, this book will also cover the explanation of source code for system versions other than Android 14. For the cases explained through sample programs in this book, source code will mostly be provided, and details of the source code can be found in the following link.&#x20;
 
-2\) If the requested memory is greater than 128KB, the kernel will call the mmap() function to allocate a Memory Space of the desired size in the heap. This method allows larger memory to be memory-aligned when requesting memory, thereby improving access efficiency.
+> <https://github.com/helsonzhao/android\_performance>
 
-### 2. mmap function
+The content of this book is the my personal thoughts and summaries based on past work experience and excellent industry practices. However, technology is boundless, and individual capabilities are relatively limited. Therefore, errors are inevitable in the text, and we hope readers will kindly forgive and offer their advice.&#x20;
 
-The mmap function is a very important function that we will encounter repeatedly later, so we will gain some understanding of this function here. The mmap function has two usages: the first is to map a file into the virtual memory of a process, allowing the process to read and write these objects through memory access; the second is to directly allocate an empty Memory Space in virtual memory without mapping a file. The function is as follows:&#x20;
+# 1.4 Target Audience of This Book
 
-```c++
-void *mmap(void *addr,size_t length,int prot,int flags,int fd, off_t offset);
-```
+The content of this book includes both basic knowledge systems and in-depth practical cases, covering from the Java layer to the Native layer. Therefore, the content of this book is suitable for readers at all stages, including the following readers.&#x20;
 
-The explanation for each input parameter of this function is as follows:&#x20;
+* Developers with extensive Android development experience and a desire to further break through Android technology&#x20;
 
-* The parameter addr points to the starting address of the memory to be mapped, usually set to NULL, indicating that the system should automatically select the address, and returns this address upon successful mapping&#x20;
+* Android developers with some work experience, having a certain understanding of performance optimization but wishing to study it more deeply&#x20;
 
-* The parameter length represents the size of the data mapped into memory&#x20;
+* New Android developers who have just started working and want to systematically learn the basic knowledge of Android
 
-* The parameter prot specifies the read and write permissions of the mapped region&#x20;
+# 1.5 How to Read This Book
 
-* The parameter flags specifies the characteristics during mapping, such as whether to allow other processes to map this memory segment, etc.&#x20;
+Different readers can choose to read different chapters according to their own fields and levels.&#x20;
 
-* The parameter fd specifies the descriptor of the file mapped into memory&#x20;
+For new employees who have just started working, it is recommended to read through the knowledge principle section of this book. These knowledge points can help Android newcomers build a systematic knowledge. With this knowledge, they can integrate into daily work and development more quickly. As for the practical chapters, they can be gradually read and practiced during subsequent development work.&#x20;
 
-* The parameter offset specifies the offset of the mapping position, typically 0.&#x20;
+For readers with some work experience or those who are already engaged in performance optimization work, it is recommended to read the entire book thoroughly to comprehensively understand the performance optimization of Android in various directions and the knowledge points covered by these optimizations. There are quite a few optimization cases in this book that use relatively complex technologies, such as Native Hook technology, Bytecode instrumentation, etc. These technologies are all knowledge points that need to be mastered for Android advancement and can help readers take their skills to the next level in the Android field.
 
-For the input parameter fd, we can either pass in the file address we want to map into user space or choose not to map a file. The explanations for these two usages are as follows:&#x20;
-
-1\) To map a disk file into user space, pass the file we want to map as fd. This usage can make our file read and write operations more efficient and can be used to implement cross-process data transfer. For example, Android's shared memory mechanism and Binder communication are both implemented through mmap file mapping.
-
-2\) Passing -1 as the fd input parameter indicates not mapping a disk file but instead allocating a block of memory on the heap. The malloc() function of the virtual machine uses this usage and directly allocates a block of memory in the Java heap space.
-
-The memory allocated by malloc is all virtual memory, and at this time, the real physical memory is not allocated or mapped. Only when we actually write data to this virtual memory area, the operating system checks that the corresponding virtual memory is not mapped to physical memory, a page fault interrupt occurs, then allocates a physical memory of the same size and establishes a mapping relationship. This is a lazy loading technique that can improve memory usage efficiency.&#x20;
-
-### 3. free function
-
-To release memory, we call the free function. We only need to pass in the starting address to be released, which is the address returned after calling the malloc function. We do not need to pass in the size of the memory to be released because the memory management mechanism has already recorded the size information of the memory block allocated to this address. When the allocated memory is no longer needed, be sure to call free to release it; otherwise, a memory leak will occur.&#x20;
-
-```c++
-void free(void *ptr)
-```
-
-
-
-## 2.1.5 Virtual Memory to Physical Memory
-
-Calling the malloc function only allocates a block of virtual memory space. This virtual space contains no data and does not occupy any real physical memory. Only when we write data to this memory will it consume physical memory. Readers can understand the entire process of allocating memory, writing data, and freeing memory through the following code.
-
-```c++
-int main() {
-    // alocate 10 byte memeory
-    int size = 10;
-    int* ptr = (int*)malloc(size * sizeof(int));
-    if (ptr == NULL) {
-        printf("allocate memory fail\n");
-        return 1;
-    }
-    // write data to memeory space
-    for (int i = 0; i < size; i++) {
-        ptr[i] = i;
-    }
-    // release memory
-    free(ptr);
-    return 0;
-}
-```
-
-When we write data to the allocated memory, the process is as follows:&#x20;
-
-1\) Trigger a page fault: When writing data to a specified memory address, if the page at that address is not mapped to a physical memory page at this time, a page fault will be triggered, and the operating system will then capture this interrupt.
-
-2\) Allocate physical memory: When the operating system catches this interrupt exception, it first checks whether the accessed virtual memory page is legal, that is, whether it is within the address space of the process. If it is legal, it will allocate a physical memory page for the virtual memory page. If the physical memory is already full, the operating system may trigger a page replacement algorithm to swap out some infrequently used physical memory pages to the disk, thereby freeing up space to allocate a new physical memory page.
-
-3\) Update the page table: Once a physical memory page is allocated, the operating system will update the page table of the process to map the virtual memory pages in the process to the newly allocated physical memory pages.
-
-4\) Write data: After the operating system completes the page table update, the program will continue to execute, and at this time the above code can continue to complete the data writing operation.
-
-
-
-# 2.2 Composition of Memory Data
-
-The core of the Android system is the Linux system, so the memory space model of processes under the Android system is the same as that of Linux. From the perspective of Linux, at this time, the program carried by each process is actually the ART virtual machine program, which then allocates memory from the heap for the program actually running on this virtual machine. Therefore, the memory composition of processes in the Android system actually consists of two parts: the virtual machine and the program running on the virtual machine. As Android developers, what we often care more about is the memory area allocated by the virtual machine for the program, and we will then understand the data composition of this memory area.&#x20;
-
-## 2.2.1 maps File
-
-To clearly understand the composition of memory data in Android processes, we first need to understand the maps file. In Linux systems, the file at the path /proc/{pid}/maps records the data information mapped by the virtual memory of each process, where {pid} is the process ID.
-
-For rooted phones, we can directly view the maps file of a certain process through the command cat /proc/xxx/maps. Figure 2-7 shows partial maps file data of a certain program in the Android system:&#x20;
-
-![Figure 2-7  partial data of maps](https://my.feishu.cn/space/api/box/stream/download/asynccode/?code=NTRjODVjMzIwODVjMzQ1NGQxNWFmOWI0YzhjODhhMTNfRzc3VVczT2h5eVVxRnI5ZGlTYjJTNXhFcWtkT25QVGFfVG9rZW46TGZFNWJqRHJwbzRPb0t4czJxamNvOHN0bnllXzE3NzQxMjMyNzA6MTc3NDEyNjg3MF9WNA)
-
-Taking the first row of data as an example, the explanations for each data segment from left to right are as follows:
-
-* 12c00000-32c00000 (address): The range of virtual address space mapped by this memory segment
-
-* rw-p (permissions,): Access permissions for this memory region
-
-* 00000000 (offset value,): The offset of the mapped address of this paragraph in the file
-
-* 00:00 (device number): The device number of the device to which the mapped file belongs. It consists of two parts: the major device number and the minor device number. The major device number is used to identify the type of device, such as a character device or a block device; the minor device number is used to identify a specific device within the same type of device. If it is an anonymous mapping, such as heap, stack, etc., then it is 00:00
-
-* 0 (inode): Represents the inode number of the mapped file. An inode can be used to identify the content and attributes of a file without relying on the file name. The file name is just an alias for the inode, and multiple file names can point to the same inode. If it is an anonymous mapping, it is 0
-
-* &#x20;\[anon:dalvik-main space (region space) ] (pathname): Represents the pathname of the mapped file, and is empty if it is an anonymous mapping&#x20;
-
-
-
-## 2.2.2 Java Heap Memory
-
-Having understood the meanings of each data segment in the maps file, let's take a look at the data in each column. What are the data named "dalvik-main space", "boot.art", "boot-core-libart.art", "……" that appear in Figure 2-7? In fact, when the Android virtual machine starts, it creates the Java heap space. Therefore, the mapping data recorded in many of the preceding columns in the maps file all belong to the Java heap data.&#x20;
-
-### 1. Composition of Heap Memory
-
-When the Android Virtual Machine starts, the Java heap is created, and all subsequent memory required for Java objects will be allocated from this heap. So, let's first understand the composition of the Java heap. The Java heap consists of MainSpace, ImageSpace, ZygoteSpace, NonMovingSpace, and LargeObjectSpace,  these five parts. The following is a description of each component.&#x20;
-
-* MainSpace: In the program, all Java object data except large objects will be stored in this space, which is the core storage area during program runtime.
-
-* ImageSpace: An object used to store system library objects, such as objects under the java.lang package, objects in android.jar, etc. The size of this space is not fixed.
-
-* ZygoteSpace: This space is adjacent to ImageSpace and is used to store the basic resources and objects required when a process starts. These objects will not be reclaimed by the GC mechanism. When a new application process is created from the Zygote process through the fork operation, the application process will inherit the resources in ZygoteSpace, which can improve the efficiency of application startup because there is no need to reload these resources. The size of ZygoteSpace in the Zygote process is 64 MB, but in non-Zygote processes, only about 2 MB will be retained because non-Zygote processes only need these 2 MB of resources, so this can free up more space for other resources to use.
-
-* NonMovingSpace: When a non-Zygote process starts, it will split approximately 62 MB from ZygoteSpace, retaining only the 2 MB space that is needed. The remaining space is called NonMovingSpace, which is used to store some objects with a longer lifecycle.
-
-* LargeObjectSpace: Used to store large objects, i.e., primitive type arrays and String objects larger than 12 KB.
-
-As can be seen from the maps file in Figure 2-6, the address range from 12c00000 to 32c00000 is exactly 512 MB in size and belongs to MainSpace. The addresses from 6fe2e000 to 726e0000 belong to ImageSpace, totaling approximately 40 MB, which stores various system-related libraries. Immediately following ImageSpace are ZygoteSpace, NonMovingSpace, and LargeObjectSpace, as shown in Figure 2-8.&#x20;
-
-![Figure 2-8 Composition of Heap Space](https://my.feishu.cn/space/api/box/stream/download/asynccode/?code=YzY1MmMxOGZhZTE3ZGY1MTliMTdhNmI5NzM5ZjNkNjdfb243YXBveVpMZmtVS2lHU1NNSFJyV2l1MjFxUThxUVNfVG9rZW46WHNDWmJhdjExbzhEWGJ4VE1pRWNlbTd0bmhkXzE3NzQxMjMyNzA6MTc3NDEyNjg3MF9WNA)
-
-
-
-### 2. Heap Creation
-
-Having understood the composition of the Java heap, we can then read the source code to understand the creation process of the Java heap, whose source code is located in heap.cc file. For ease of reading, I have streamlined the source code and split the entire process into 6 parts.
-
-1\) Let's first look at the first part, and the code is as follows. The code in this part is mainly used to create ImageSpace, which is primarily used to load the boot.oat library, a part of the ART virtual machine.
-
-```c++
-Heap::Heap(……){
-  ……
-  std::vector<std::unique_ptr<space::ImageSpace>> boot_image_spaces;
-  // 1. Create ImageSpace,Used for loading boot.oat
-  if (space::ImageSpace::LoadBootImage(……,&boot_image_spaces,……)) {
-    ……
-  } else {
-    ……
-  }
-
-  // 2. Create ZygoteSpace
-  ……
-  
-  // 3. Create MainSpace
-  ……
-  
-  // 4. Manage ZygoteSpace
-  ……
-  
-  // 5. Manage MainSpace
-  ……
-  
-  // 6. Create And Manage LargeObjectSpace
-  ……
-}
-```
-
-2\) The code in the second part is mainly about creating ZygoteSpace, and the code is as follows.
-
-```c++
-MemMap non_moving_space_mem_map;
-if (separate_non_moving_space) {
-    // Create Virtual Memory of ZygoteSpace，which is 64MB
-    const char* space_name = is_zygote ? kZygoteSpaceName : kNonMovingSpaceName;
-    if (heap_reservation.IsValid()) {
-      non_moving_space_mem_map = heap_reservation.RemapAtEnd(
-          heap_reservation.Begin(), space_name, PROT_READ | PROT_WRITE, &error_str);
-    } else {
-      non_moving_space_mem_map = MapAnonymousPreferredAddress(
-          space_name, request_begin, non_moving_space_capacity, &error_str);
-    }
-    request_begin = kPreferredAllocSpaceBegin + non_moving_space_capacity;
-}
-```
-
-3\) The code in the third part mainly creates MainSpace. According to the code logic, if the type of the foreground GC mechanism (foreground\_collector\_type\_) is not Concurrent Copying (kCollectorTypeCC), a space named "main space" with a size of capacity\_, where capacity\_ is equivalent to the size configured by the system "dalvik.vm.heapsize" (mostly 512 MB), will be created. If the foreground or background GC mechanism is Semi-Space GC (kCollectorTypeSS), a space named "main space 1" will be created. Only the GC mechanisms in systems between Android 5 and Android 7 meet these two conditions, so two spaces named "main space" and "main space 1" will be created in these systems.
-
-```c++
-static const char* kMemMapSpaceName[2] = {"main space", "main space 1"};
- 
-MemMap main_mem_map_1;
-MemMap main_mem_map_2;  
-// When foreground GC is not using concurrent copying, it creates two spaces.Android systems from 5.x to 7.x adopt this GC algorithm.
-if (foreground_collector_type_ != kCollectorTypeCC) {
-    if (separate_non_moving_space || !is_zygote) {
-    //Create virtual memory for the space named “main space”.
-      main_mem_map_1 = MapAnonymousPreferredAddress(
-          kMemMapSpaceName[0], request_begin, capacity_, &error_str);
-    } else {
-        ……
-    }
-}
-//Likewise, Android systems from 5.x to 7.x adopt this GC algorithm.
-if (support_homogeneous_space_compaction ||
-  background_collector_type_ == kCollectorTypeSS ||
-  foreground_collector_type_ == kCollectorTypeSS) {
-    //Create virtual memory for the space named “main space 1”.
-    main_mem_map_2 = MapAnonymousPreferredAddress(
-        kMemMapSpaceName[1], main_mem_map_1.End(), capacity_, &error_str);
-}
-……  
-  
-```
-
-4\) In the code of the fourth part, the previously created ZygoteSpace will be managed through DlMallocSpace, as shown below.
-
-```java
-if (separate_non_moving_space) {
-    const size_t size = non_moving_space_mem_map.Size();
-    const void* non_moving_space_mem_map_begin = non_moving_space_mem_map.Begin();
-    //Through DlMallocSpace to manage ZygoteSpze
-    non_moving_space_ = 
-            space::DlMallocSpace::CreateFromMemMap(std::move(non_moving_space_mem_map),
-                                                               "zygote / non moving space",
-                                                               kDefaultStartingSize,
-                                                               initial_size,
-                                                               size,
-     ……
-}
-
-```
-
-5\) In the code of the fifth part, it will check if the foreground GC mechanism is concurrent copying collection. If so, it will create a space named "main space (region space)" with a size of 'capacity\_' \* 2, which is 1 GB in total. However, on some devices, 'capacity\_' has been adjusted to 256 MB, in which case the total space is only 512 MB, and it will be directly placed into RegionSpace for management. Since the foreground GC mechanism is concurrent copying collection only in Android 8 and above, this space will only exist in Android 8 and above systems. From the first line of the maps file in Figure 2-5, we can also see the 512 MB "main space (region space)".
-
-If the foreground GC mechanism is not concurrent copying and recycling, that is, in versions below Android 8, it will first determine whether the foreground GC mechanism is MovingGc. If so, the two spaces "main space" and "main space 1" created in the third part will be respectively placed into two BumpPointerSpaces for management.&#x20;
-
-In other cases, both the "main space" and "main space 1" Memory Spaces are placed into MallocSpace for management.&#x20;
-
-```c++
-static const char* kRegionSpaceName = "main space (region space)";
-
-/*Foreground GC uses concurrent copying; 
-this GC algorithm is adopted on Android 8.0 and above.*/
-if (foreground_collector_type_ == kCollectorTypeCC) {
-    // Create a space with a capacity of capacity_ * 2, i.e., 1 GB.
-    MemMap region_space_mem_map =
-        space::RegionSpace::CreateMemMap(kRegionSpaceName, capacity_ * 2, request_begin);
-    ……
-} else if (IsMovingGc(foreground_collector_type_)) {
-    // Manage the previously created main space and main space 1 using BumpPointerSpace.
-    bump_pointer_space_ =
-            space::BumpPointerSpace::CreateFromMemMap("Bump pointer space 1",
-                                                      std::move(main_mem_map_1));
-
-    temp_space_ = space::BumpPointerSpace::CreateFromMemMap("Bump pointer space 2",
-                                                            std::move(main_mem_map_2));
-} else {
-    // Manage the previously created main space and main space 1 using MainMallocSpace.
-    CreateMainMallocSpace(std::move(main_mem_map_1), initial_size, growth_limit_, capacity_);
-    if (main_mem_map_2.IsValid()) {
-        const char* name = kUseRosAlloc ? kRosAllocSpaceName[1] : kDlMallocSpaceName[1];
-        main_space_backup_.reset(CreateMallocSpaceFromMemMap(std::move(main_mem_map_2),
-                                                             initial_size,
-                                                             growth_limit_,
-                                                             capacity_,
-                                                             name,
-                                                             /* can_move_objects= */ true));
-        ……
-    }
-}
-```
-
-6\) The code in the last part mainly creates the LargeObjectSpace, implemented as follows.
-
-```c++
-// Apply and Create LargeObjectSpace
-if (large_object_space_type == space::LargeObjectSpaceType::kFreeList) {
-    large_object_space_ = 
-            space::FreeListSpace::Create("free list large object space", capacity_);
-} else if (large_object_space_type == space::LargeObjectSpaceType::kMap) {
-    large_object_space_ = 
-            space::LargeObjectMapSpace::Create("mem map large object space");
-} else {
-    ……
-}
-```
-
-By reading the source code of heap creation above, we can know that in Android 5 to Android 7 versions, spaces named "main space" and "main space 1" with a size of 512M each will be created, and both main space and main space 1 will be maintained and managed through MallocSpace. In actual use, only one of the spaces will be used, and only when GC is executed will the other space come into play. At this time, the GC collector will move all the live objects in the previously used space to the other space. In Android 8.0 and above versions, main space (region space) is created and maintained and managed through RegionSpace.&#x20;
-
-In the creation process of the Java heap, we can also find that all Memory Spaces will first apply for a block of virtual memory through mmap, and then place this memory into the corresponding space for management. The following briefly introduces the space used to manage memory:&#x20;
-
-| Space                                  | Explanation                                                                                                                                                                                                                                                                                                                                                                                                                                                                               |
-| -------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| DlMallocSpace                          | Memory is allocated and freed through the dlmalloc memory allocator, which uses data structures such as separate free lists and bitmaps, enabling it to efficiently handle small memory allocation requests. However, it has lower efficiency for large memory allocations and suffers from a certain degree of memory fragmentation issues.                                                                                                                                              |
-| MainMallocSpace                        | Memory allocation and deallocation are performed through the rosalloc memory allocation manager developed by Google. The usage of rosalloc is much more complex than that of dlmalloc, and it also requires cooperation from other modules in the ART virtual machine. However, the allocation effect is better than that of dlmalloc, effectively reducing the generation of memory fragmentation, and it performs better under multi-threading, but with greater performance overhead.  |
-| BumpPointerSpace                       | A very simple memory allocation algorithm that allocates sequentially, similar to a linked list, is prone to memory fragmentation, so it is only used in thread-local storage or object spaces with a very long lifespan.                                                                                                                                                                                                                                                                 |
-| RegionSpace                            | The memory allocation algorithm of RegionSpace is slightly more advanced than that of BumpPointerSpace. It first divides memory resources into memory blocks of a fixed size (specified by kRegionSize, defaulting to 1MB), with each memory block represented by a Region object. When performing memory allocation, it first finds a Region that meets the requirements, and then allocates resources from this Region.                                                                 |
-| FreeListSpace<br />LargeObjectMapSpace | Allocating and freeing memory through list or map is simpler than BumpPointerSpace.                                                                                                                                                                                                                                                                                                                                                                                                       |
-
-Different GC algorithms have different space requirements. For example, the mark-sweep algorithm only requires one space, while the copy collection algorithm requires two spaces. The properties of different objects also have different space requirements. For example, system objects have a very long survival cycle and need to be placed in spaces with a longer life cycle, while some application objects have a very short survival cycle and need to be uniformly placed in spaces with a shorter life cycle. Therefore, during the process of creating the Java heap, so many spaces emerge. These spaces have different mechanisms for memory allocation and deallocation, and different GC algorithms. The system will select the appropriate space based on different scenarios.&#x20;
-
-### 3. Java Object Allocation and Release
-
-Although the Java heap consists of many spaces, in fact, Java objects in application code are almost always stored only in the MainSpace and LargeObjectSpace, while other spaces are used by system libraries. So, let's take a look at how the memory required for Java objects is allocated and released in the MainSpace and LargeObjectSpace.
-
-1\) Application Process
-
-There are two ways to create and load an object in Java, namely explicit loading and implicit loading. Explicit loading uses the `Class.forName` or `ClassLoader.loadClass` method to load the object. Implicit loading uses the new keyword, reflection, accessing Static Variables, etc., to load the object. Both of these two ways will eventually call the `AllocObjectWithAllocator` method to allocate memory in the Java heap. This method is located in heap-inl.h file. Below is the simplified logical code of this memory allocation function.
-
-```c++
-inline mirror::Object* Heap::AllocObjectWithAllocator(……) {                 
-  ……
-  //1.Check whether it is a LargeObject; if so, allocate memory in the LargeObjectSpace.
-  if (kCheckLargeObject && UNLIKELY(ShouldAllocLargeObject(klass, byte_count))) {
-    obj = AllocLargeObject<kInstrumented, PreFenceVisitor>(self, &klass, byte_count,
-                                                           pre_fence_visitor);
-    ……
-  }
-
-  ……
-  //2.not a LargeObject, call TryToAllocate to allocate memory in the main space.
-  obj = TryToAllocate<kInstrumented, false>(self, allocator, byte_count, 
-                              &bytes_allocated,&usable_size, &bytes_tl_bulk_allocated);
-  if (UNLIKELY(obj == nullptr)) {
-    //3. If the allocation fails, trigger a GC and then attempt the allocation again.
-    obj = AllocateInternalWithGc(self,
-                                 allocator,
-                                 kInstrumented,
-                                 byte_count,
-                                 &bytes_allocated,
-                                 &usable_size,
-                                 &bytes_tl_bulk_allocated,
-                                 &klass);
-    ……        
-  }
-  ……
-  return obj.Ptr();
-}
-```
-
-Through the above code process, it can be seen that if the Java object applying for memory is a large object, AllocLargeObject will be called to allocate in LargeObjectSpace; if not, TryToAllocate will be called to allocate in MainSpace. If the allocation fails, GC will be executed and then the allocation will continue.&#x20;
-
-What is a large object? From the code of the `ShouldAllocLargeObject` judgment interface below, we can see that an object is considered a large object if the requested memory is greater than or equal to large\_object\_threshold\_ (which is 12 KB) and it is a primitive type array or a string.
-
-```c++
-inline bool Heap::ShouldAllocLargeObject(ObjPtr<mirror::Class> c, size_t byte_count) const {
-  return byte_count >= large_object_threshold_ && 
-          (c->IsPrimitiveArray() || c->IsStringClass());
-}
-```
-
-
-
-2\) Release Process
-
-After understanding the object allocation process, let's take a look at the object deallocation process. When allocating memory in the Java heap, if the allocation fails or the total memory size exceeds the threshold after allocation, GC will be executed. In the above allocation process, we can see that after a memory allocation failure, the AllocateInternalWithGc interface will be called to reallocate memory. This interface will call the CollectGarbageInternal method located in the heap.cc  file to perform GC, and the code is as follows.&#x20;
-
-```c++
-collector::GcType Heap::CollectGarbageInternal(collector::GcType gc_type,
-                                               GcCause gc_cause,
-                                               bool clear_soft_references,
-                                               uint32_t requested_gc_num) {
-  ……
-
-  collector::GarbageCollector* collector = nullptr;
-  //1. Select the corresponding garbage collector.
-  if (compacting_gc) {
-    switch (collector_type_) {
-      case kCollectorTypeSS:
-        semi_space_collector_->SetFromSpace(bump_pointer_space_);
-        semi_space_collector_->SetToSpace(temp_space_);
-        semi_space_collector_->SetSwapSemiSpaces(true);
-        collector = semi_space_collector_;
-        break;
-      case kCollectorTypeCC:
-        collector::ConcurrentCopying* active_cc_collector;
-        if (use_generational_cc_) 
-          active_cc_collector = (gc_type == collector::kGcTypeSticky) ?
-                  young_concurrent_copying_collector_ : concurrent_copying_collector_;
-          active_concurrent_copying_collector_.store(active_cc_collector,
-                                                     std::memory_order_relaxed);
-          collector = active_cc_collector;
-        } else {
-          collector = active_concurrent_copying_collector_.load(std::memory_order_relaxed);
-        }
-        break;
-      default:        
-    }
-    ……
-  } else if (current_allocator_ == kAllocatorTypeRosAlloc ||
-      current_allocator_ == kAllocatorTypeDlMalloc) {
-    collector = FindCollectorByGcType(gc_type);
-  } else {
-    LOG(FATAL) << "Invalid current allocator " << current_allocator_;
-  }
-
-  //2. Eexcute GC
-  collector->Run(gc_cause, clear_soft_references || runtime->IsZygote());
-  ……
-  return gc_type;
-}
-```
-
-The logic of this interface is relatively simple, mainly doing the following two things:&#x20;
-
-1. Select an appropriate garbage collector and configure its environment. For example, semi-space collection (kCollectorTypeSS) sets up the source space (FromSpace) and the destination space (ToSpace).&#x20;
-
-2. Then call and execute the collector->Run interface, which will execute the garbage collector object's collection strategy.
-
-Different garbage collectors correspond to different GC algorithms. The knowledge in this area is quite extensive and goes beyond the scope of this chapter, so we will not provide a detailed introduction. Here, we will only introduce how a garbage collector determines whether an object is recyclable, which can help us better understand memory optimization.&#x20;
-
-For the garbage collector of the ART virtual machine, it determines whether an object can be reclaimed through reachability analysis. The garbage collector analyzes the reference chain of each object in the space. If the reference chain of an object is ultimately held by a GC Root, it means that the object cannot be reclaimed. Otherwise, it can be reclaimed. As shown in Figure 2-9, although objects 6 and 7 are held by object 5, object 5 is not held by GC Roots, so the garbage collector will determine that objects 5, 6, and 7 are all objects that can be cleared and reclaimed, while the reference chains of objects 1, 2, 3, and 4 are held by GC Roots, so they cannot be cleared and reclaimed by the garbage collector.&#x20;
-
-![Figure 2-9 GC Reachability Judgment](https://my.feishu.cn/space/api/box/stream/download/asynccode/?code=NmNjZmY0NDk4YjA4MTRkMzE1OWEyZmI3ODlkYzUwNDZfZUk0Sjl2SlhlN05ncUk4bFBJWjUwd1M1SGFJUURDRDlfVG9rZW46RVA1UGJqaVlOb1czSWt4Vml3eWNLS1NnbkVnXzE3NzQxMjMyNzA6MTc3NDEyNjg3MF9WNA)
-
-
-
-GC Roots mainly include the following items:
-
-* Objects referenced in the stack: Each thread creates a thread stack when it executes, so as long as an object is referenced in this stack, it will not be released until the thread exits.
-
-* Objects referenced by static variables and constant references: Objects referenced by static variables are also reachable from GC Roots, and only when we manually set them to null can we release these objects.
-
-* Objects referenced by Native methods: Objects that are passed to the Native layer through JNI (Java Native Interface) calls and referenced by Native functions cannot be released either.
-
-## 2.2.3 Native Memory
-
-Compared to Java heap memory, Native memory mainly consists of two parts: one is the occupancy of Bitmap. Since Android 8, Bitmap memory has been counted as Native memory, and Bitmap's Memory Space is actually allocated through the malloc function; the other is the memory allocated by memory allocation functions such as malloc, calloc, realloc , mmap  in the so library. Although Native memory has a relatively simple composition, it is much more difficult to manage than Java heap memory. In the subsequent practical chapters, we will further master the knowledge of Native memory and its management.
-
-# 2.4 Methodology for Memory Optimization
-
-From the previous knowledge points, we can know that memory is divided into two parts: virtual memory and physical memory. Virtual memory is the memory allocated through the mmap function, but no data is actually written to it. Physical memory is the memory that is consumed only after data is written. When the consumption of either virtual memory or physical memory exceeds the threshold, it will lead to OOM. Therefore, when optimizing memory, we must first clarify whether we are optimizing virtual memory or physical memory. If we are optimizing physical memory, then our optimization direction can be further divided into Native memory or Java memory. Whether it is the optimization of virtual memory or physical memory, the methodology for optimization is the same, mainly including three aspects: timely data cleaning, reducing data loading, and increasing memory size.
-
-## 2.4.1 Clean up data in a timely manner
-
-Optimization solutions designed through the methodology of timely data cleaning are often application-layer optimization solutions, which are generally easy to implement and have good results. In most cases, we only need to clean data in two situations: at the end of the business and when memory is insufficient.&#x20;
-
-* At the end of the business
-
-At the end of the business operation, some data needs to be manually cleaned up by us, such as global cache and resources. Some data will be automatically cleaned up, such as Activity and its member variables. For data that needs to be manually cleaned up, we should avoid null exceptions caused by the continued use of this data in business operations after cleanup. Since cleaning up this type of data is prone to exceptions, we should best exercise caution or, if possible, convert the global data that needs to be manually cleaned up into member data within Activity.&#x20;
-
-For an Activity, once it has been destroyed, as long as this Activity is not held for a long time by an object elsewhere, when the virtual machine performs garbage collection (GC), this Activity and its member variables will be reclaimed and released. In reality, for data that is automatically cleaned up when such business operations end, most of our optimizations focus on the investigation and management of leaks. However, we can also add some defensive optimization strategies in addition to investigation and management. For example, we can change the code that holds the Activity's context to hold the Application's context. If it is not possible to hold the Application's context, the Activity's context should be held with a weak reference.&#x20;
-
-* When memory is insufficient&#x20;
-
-In addition to when the business ends, we also need to proactively clear non-essential objects and data when there is insufficient memory. For example, when Java heap memory is insufficient, we can implement strategies such as cleaning the cache in the application. So how can we know that the Java heap is insufficient? This requires adding a detection mechanism. We can start an independent sub-thread and then perform detection at regular intervals to obtain Java heap information. The information can be obtained either through AMS to get meminfo or through the Runtime.getRuntime() interface. However, in this scenario, using Runtime.getRuntime() is appropriate because it has the least performance overhead, and we only need to know the maximum memory and used memory of the Java heap.&#x20;
-
-```java
-//Retrieve memoryInfo by AMS  
-ActivityManager am = (ActivityManager) context.getSystemService(Context.ACTIVITY_SERVICE);
-ActivityManager.MemoryInfo memoryInfo = new ActivityManager.MemoryInfo();
-
-//Retrieve the memory usage limit of the current virtual machine instance
-Runtime.getRuntime().maxMemory()
-//Retrieve the currently allocated memory
-Runtime.getRuntime().totalMemory()
-```
-
-Once we obtain the maximum available memory and the used Java heap memory, we can determine whether the memory usage has exceeded the threshold we set. If it has, we will notify each business, cache, singleton object, etc. through a callback to perform cache cleanup.&#x20;
-
-
-
-## 2.4.2 Reduce data loading
-
-To reduce the data loaded into the Java heap, we can achieve this by reducing cache size, loading data on demand, and transferring data.
-
-**1) Reduce cache size**
-
-Inevitably, a lot of caches are needed in business development. Caching is an effective way to improve performance by trading space for time. The more caches are used, the more memory is occupied. Naturally, reducing the use of caches can also reduce memory usage. However, reducing the cache size may conflict with the business experience. At this time, we need to comprehensively evaluate multiple factors such as business experience, OOM rate, and business usage frequency to minimize the cache size. How should we operate specifically? Take LruCache (Least Recently Used Cache) as an example. It is one of the most commonly used cache containers. To optimize caches like LruCache, we need to consider the following points:&#x20;
-
-* What is the capacity of the cache?
-
-* When will the data in the cache be cleared?&#x20;
-
-Let's first look at the first question. The LruCache constructor requires setting the capacity size of this LruCache. Many articles online mention that the default value passed in is one-eighth of the maximum available heap memory, but this setting is actually not very accurate. We need to evaluate the importance of the business and the frequency of business usage. If it is a cache for an important and frequently used business, it is acceptable to set a larger capacity here. At the same time, we also need to evaluate the current device model. If it is a low-end device with only 256MB of available heap memory, setting it to one-eighth, which is 32MB, is a bit too much and may have a certain impact on the stability of the entire application. So, exactly how much should it be set? It is recommended to fully consider the device model and business before setting. There is no absolute standard here, and the developers of the application need to evaluate it based on the actual scenario and business.
-
-Now let's look at the second question: when should the data in the cache be cleared? LruCache comes with its own cache clearing strategy. Once the cache reaches its capacity limit, it will clear the last recently unused data. In addition to this clearing strategy, we can add more strategies, such as clearing the data in LruCache when Java heap memory usage reaches a threshold (e.g., 80%).
-
-In addition to LruCache, commonly used collection containers also include List, Map, etc. When optimizing memory, we also need to consider issues such as how much memory they occupy during runtime, whether there will be memory exceptions caused by excessive memory usage, and how to clean them up in a timely manner.&#x20;
-
-**2) Load data on demand**
-
-Lazy loading data means that data is only loaded when we actually need it. The Android system uses a large number of lazy loading strategies. For example, the mmap function mentioned earlier actually requests virtual memory, and physical memory is only allocated and mapped when data actually needs to be stored. In application development, using the lazy loading data strategy can save a significant amount of Java heap memory.&#x20;
-
-In project development, we also have many scenarios where this strategy can be applied. For example, we usually register various global services into a service container in the project, expose the capabilities of each business through the service interface, and achieve the purpose of decoupling. In many cases, we perform registration when the program starts or the business initializes. However, if we adopt the principle of loading data on demand and delay the registration logic until the service is actually needed, it can optimize performance. In addition, it also includes various preloading operations during application startup, and we can also consider whether to perform the loading when it is actually needed.&#x20;
-
-**3) Transfer data**
-
-We know that the size of the Java heap is limited, and the available size under mainstream models is only  512 MB . So, if we transfer the data that needs to be placed in the Java heap to other locations, can we break through the 512 MB limit? In fact, we can indeed do so, and there are mainly the following two ways to transfer data:&#x20;
-
-* Transferring Java heap data to Native: Regarding this optimization strategy, Bitmap is a classic example. Before Android 8.0, Bitmap was counted towards the Java heap space, but in Android 8.0 and later versions, Bitmap is placed in Native. This strategy significantly increases the available space in the Java heap. Before Android 8, the image loading tool Fresco also adopted a solution that placed the creation of Bitmap in Ashmem anonymous shared memory to optimize Java heap memory. It can be seen that both the Android system and the Fresco framework optimize Java heap memory by transferring data originally stored in the Java heap to Native. Therefore, we can also use this approach when optimizing Java heap memory. For example, we can move business operations that require reading Big data to the Native layer, including network libraries and business data processing. Even for Bitmap, in versions below Android 8.0, it can be transferred to Native through technical means such as Native Hook.
-
-* Transfer the data in the Java heap of the current process to other processes: The Java heap of each process is fixed, but we can design the application as a multi-process model, so that multiple Java heap spaces are available. We can choose to place relatively independent business operations in child processes, such as those that need to be hosted by containers like Mini Programs, Flutter, RN, Webview, etc. After we place these business operations in independent child processes, we can not only reduce the size of the Java heap in the main process but also mitigate performance issues such as memory leaks and crashes caused by these operations in the main process.
-
-## 2.4.3 Increase Memory Space Size
-
-Regarding the memory optimization methodology of increasing memory size, readers may wonder, isn't the memory size fixed for a device? So how can we increase it? From the previous basic knowledge, we also know that although the sizes of physical memory and the virtual memory created by the system for processes are both fixed, there are many other memory spaces created by virtual machines or system libraries. For example, the Java heap space, which defaults to 512 MB, is created and managed by the virtual machine, and the thread stack space, which defaults to 1024 KB, is created by the libc system library. Therefore, we can use Native Hook technology to change the logic of system libraries or virtual machines, thereby achieving the optimization of changing the sizes of these spaces and increasing memory space.
-
-However, changing the logic of system libraries through Native Hook to increase memory size is not a very conventional optimization solution, because when implementing these optimization solutions, we not only need to be familiar with the underlying logic and source code but also need to be familiar with Native Hook technology. A classic example is ByteDance's mSponse memory optimization solution, which uses Native Hook technology to free LargeObjectSpace from the idle state of its original space size and allocates an independent 512 MB space.
-
-In addition to expanding the available memory space, we can also indirectly increase the available memory size by reducing the space in the memory space that is occupied by the system but not actually used. This method is often used in the optimization of virtual memory and will also be further explained through practical cases in the following chapters.&#x20;
-
-| Source code appearing in this chapter:<br />heap.cc: https://cs.android.com/android/platform/superproject/+/main:art/runtime/gc/heap.cc<br />heap-inl.h: https://cs.android.com/android/platform/superproject/+/main:art/runtime/gc/heap-inl.h |
-| ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-
-
-
-
-
+For experienced Android developers, they can selectively read the chapters on practical projects in this book. Many optimization cases in this book are quite novel. Through these cases, readers can also gain some new ideas and inspire more inspiration in their subsequent work.&#x20;

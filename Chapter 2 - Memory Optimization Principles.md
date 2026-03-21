@@ -38,17 +38,13 @@ So what is virtual memory? And how does virtual memory solve the various problem
 
 Virtual memory technology is equivalent to allocating each process a exclusive and contiguous block of memory, except that this memory is virtual. The simplified model of virtual memory is shown in Figure 2-1. From the simplified model diagram, it can be seen that each process has its own unique virtual memory, which consists of system space and user space. The kernel space stores the operating system's data, and this data is the same across all processes, all mapped to the same physical memory segment; the user space stores the application's data. When an application writes data to the address of its corresponding virtual memory, the operating system will map the virtual address space to the actual physical memory address, and data can be written after the mapping is completed.&#x20;
 
-![Figure 2-1 Simplified Model Diagram of Virtual Memory](https://my.feishu.cn/space/api/box/stream/download/asynccode/?code=MDMwM2JiODY3MWViNWRkZDdjNTFmZDcwMzMwZmU5MDNfVXJlNTUxTWhWMk94d1M2V1R1WHR4eUxjTGhydWxvSmJfVG9rZW46QVRJdGJVcVNRb1lmRWF4NjR4MmNRVG9MbmhkXzE3NzQxMjMyNzA6MTc3NDEyNjg3MF9WNA)
-
-
+![Figure 2-1 Simplified Model Diagram of Virtual Memory](https://my.feishu.cn/space/api/box/stream/download/asynccode/?code=ZTViNmI2ODBjNmIzZTdhZWZlNWMzNGNjYzM4MDA0ZDZfUUNoWDlIRFM2RXpxOERIb1A1WnFKYUZMWDhNSGVjcHlfVG9rZW46QVRJdGJVcVNRb1lmRWF4NjR4MmNRVG9MbmhkXzE3NzQxMjU5NTg6MTc3NDEyOTU1OF9WNA)
 
 The size of virtual memory is 2^32 bytes, i.e., 4GB, on a 32-bit system; on a 64-bit system, it is 2^48 bytes, i.e., 16TB. The reason it is not 2^64 ByteDance is that 2^48 bytes is already large enough, and the space of 2^64 bytes would only cause the system to consume more resources to maintain and manage this space. Virtual memory is managed and mapped to physical memory on a page basis, with each page being 4KB in size.&#x20;
 
 Here, I assumes a scenario where a 32-bit system has only 2GB of physical memory, and uses the mapping model of virtual memory and physical memory as an example to help readers better understand. This scenario is shown in Figure 2-2, where the 4GB virtual memory is divided into 4194304 pages, each with a size of 4KB. When a page in virtual memory needs to write data, it maps a 4KB block of physical memory; if a page in virtual memory does not write data, no mapping occurs. The address mapping from virtual memory to physical memory is completed by the  memory management  unit (MMU) of the computer, which belongs to the hardware rather than the system software, so the mapping speed is very fast.&#x20;
 
-![Figure 2-2 Mapping Model of Virtual Memory and Physical Memory in a 32-bit System](https://my.feishu.cn/space/api/box/stream/download/asynccode/?code=YzZkOGFmYmVkNGY2YWQ5NDYzNzdlMzZlZGQ0N2YxMDRfcWw4T2hiZ3lpUnBoVWlzUFY5VjBjYWpqbklVcWk1cmxfVG9rZW46VWRNUWJpMWl4b0JWNFF4cHllamNFeVhhbnJnXzE3NzQxMjMyNzA6MTc3NDEyNjg3MF9WNA)
-
-
+![Figure 2-2 Mapping Model of Virtual Memory and Physical Memory in a 32-bit System](https://my.feishu.cn/space/api/box/stream/download/asynccode/?code=NDYxOTgwMmQ0OTQwMTgxYTFjNDQwZDgxYWMzZDNkMzFfMUFjTWZxcVJWNElrbFRidktac2F2cEhrVDRQdDZhWHZfVG9rZW46VWRNUWJpMWl4b0JWNFF4cHllamNFeVhhbnJnXzE3NzQxMjU5NTg6MTc3NDEyOTU1OF9WNA)
 
 ## 2.1.3 ELF Files
 
@@ -56,9 +52,7 @@ Previously, we have learned that virtual memory consists of data from two parts:
 
 All files that an operating system can execute must conform to a certain format. For example, in the Windows system,.exe program files and.dll library files are all in the PE (Portable Executable) file format. In Linux, executable files, including .o relocatable files and .so library files, are all in the ELF (Executable and Linkable Format) file format. When the system needs to execute a program, it first loads the data in the program into the virtual memory block of the user space. Therefore, to understand what data exists in the user space, we need to first understand the ELF file format, as shown in Figure 2-3:&#x20;
 
-![Figure 2-3 ELF File Format](https://my.feishu.cn/space/api/box/stream/download/asynccode/?code=OGVjMWM4YmQ0ODlhYTNiY2RiMzhjNjUyYjljMmRkZWVfV0hqeHhyYktPY29iVzdCTGIxMXhPYlNvVHFGZzRQSFhfVG9rZW46R24zNWJkMklEb0dJUlh4VkFCVWNNa1hZblRoXzE3NzQxMjMyNzA6MTc3NDEyNjg3MF9WNA)
-
-
+![Figure 2-3 ELF File Format](https://my.feishu.cn/space/api/box/stream/download/asynccode/?code=YTBmOTA3ODBhNTE0NmIyZDhlYWIwN2YyMTgwM2M5NTlfc1Z6dFoyWGJQT0xsOWtDS2RzS1J6YWgxU0RubHRBZEhfVG9rZW46R24zNWJkMklEb0dJUlh4VkFCVWNNa1hZblRoXzE3NzQxMjU5NTg6MTc3NDEyOTU1OF9WNA)
 
 &#x20;An ELF file generally consists of an ELF Header, a Program Header Table, a Section Header Table, and multiple Sections, and their explanations are as follows:&#x20;
 
@@ -74,7 +68,7 @@ Let's continue to take a detailed look at these two parts: the data segment and 
 
 By using the readelf tool provided in the Android NDK, execute the command "readelf -S xxx.so" to read the data segment information of the libart library. As shown in Figure 2-4, it can be seen that the art virtual machine library file has more than 30 data segments.&#x20;
 
-![Figure 2-4 Segment Information of libart.so Library File ](https://my.feishu.cn/space/api/box/stream/download/asynccode/?code=ZDUyYTUxYWZiNzM3MjJlODNjODUyNGQyNTRhZDNhYzJfbDNYSUFIYTdLNzRIdHNaRnZjdE1zcUZ2SnZncjhEVGJfVG9rZW46UlpZZmJCa3J3bzRYR1N4SE5mRWNXdFdibmxvXzE3NzQxMjMyNzA6MTc3NDEyNjg3MF9WNA)
+![Figure 2-4 Segment Information of libart.so Library File ](https://my.feishu.cn/space/api/box/stream/download/asynccode/?code=MjQ1OTk4MGVjODc0ZTczNDkwZTUyNGZjYWE2MGY4ZDFfN2RqVm1uN3pxcVVZcmIydjZZR3l5OGJPT25vc3VDZTZfVG9rZW46UlpZZmJCa3J3bzRYR1N4SE5mRWNXdFdibmxvXzE3NzQxMjU5NTg6MTc3NDEyOTU1OF9WNA)
 
 Since the number of sections is relatively large, we will only introduce some of the most common data sections here:
 
@@ -118,7 +112,7 @@ Since the number of sections is relatively large, we will only introduce some of
 
 We then use the readelf tool to execute the command "readelf -l libart.so" to read the program segment information of the libart library. As shown in Figure 2-5, we can see that the art virtual machine library file organizes the above 31 data segments (Section) into 9 program segments (Program Segment)
 
-![Figure2-5 Program Segment Information in art Library](https://my.feishu.cn/space/api/box/stream/download/asynccode/?code=ZWIwMzdmYzkyZDNkNTdlOGMyZDU4OTc5ZGU2MGQ2N2NfQlc5T05LbWF3UFhJQ2ZpQ2l4MG51WFZkNVM0dzlTZnJfVG9rZW46WFQzNmJLenRZb282WE54SjVSNGNMNHBTbkhnXzE3NzQxMjMyNzA6MTc3NDEyNjg3MF9WNA)
+![Figure2-5 Program Segment Information in art Library](https://my.feishu.cn/space/api/box/stream/download/asynccode/?code=ZjdmMGU3ZmYwNzNlOTQwYjBlMDQ1NWNkNjk0NWFkMTZfMDVKUEhjbVhJWFFRVWRYRXNxVzlxamZiejU0Q2NiMDdfVG9rZW46WFQzNmJLenRZb282WE54SjVSNGNMNHBTbkhnXzE3NzQxMjU5NTg6MTc3NDEyOTU1OF9WNA)
 
 ### 3. Structure of Virtual Memory
 
@@ -128,9 +122,7 @@ After storing the data of the ELF file, the stack space and heap space follow. A
 
 Above the stack space is the system space, which is used to store operating system data. As shown in Figure 2-6, it is a structural model diagram of the ELF file and virtual memory in a 32-bit system. Through this model diagram, we can have a clearer understanding of the structure of virtual memory.
 
-![Figure 2-6 Structural Model Diagram of ELF Files and Virtual Memory](https://my.feishu.cn/space/api/box/stream/download/asynccode/?code=NjFkYjk5M2NkNDg4MGQ0NDNmMGM0ZTM3OWM0YmMxM2JfcDQxVDhFNTBpM1ltRURzY3hRUHZTT3pIcnNrNmZRRlRfVG9rZW46SDZ3TWIyYXM0b3llV0F4YnVsMGNVSUlmbkpjXzE3NzQxMjMyNzA6MTc3NDEyNjg3MF9WNA)
-
-
+![Figure 2-6 Structural Model Diagram of ELF Files and Virtual Memory](https://my.feishu.cn/space/api/box/stream/download/asynccode/?code=YzRjYTUwZmMxOWFjMzk3M2I0OGNlMjRkYzk4YjAxOWJfbWY3QzR6NTE0dDVFcnJMVW8wMzVRSnEzTkd2SWtKZzVfVG9rZW46SDZ3TWIyYXM0b3llV0F4YnVsMGNVSUlmbkpjXzE3NzQxMjU5NTg6MTc3NDEyOTU1OF9WNA)
 
 ## 2.1.4 Virtual Memory Allocation and Deallocation
 
@@ -142,10 +134,6 @@ When developing Android applications, if we are doing Native development, we nee
 
 Let's first take a look at the malloc function, which is very simple. When calling it, we only need to pass in the size of the memory we want to allocate. If the allocation is successful, it will return the address of a void\* pointer; if it fails, it will return NULL.
 
-```c++
-void *malloc(size_t size)
-```
-
 The malloc function is a function in the C language library, so when it allocates memory, it ultimately has to call functions provided by the Linux system, allowing the Linux kernel to help us allocate a block of memory. The kernel will execute different allocation strategies based on the size of the requested memory, mainly two strategies.&#x20;
 
 1\) If the requested memory is less than or equal to 128KB, the kernel will call the sbrk() function to request memory. sbrk() will move the heap top pointer towards higher addresses to obtain new virtual Memory Space. This method is simpler and more efficient when allocating and freeing memory;
@@ -155,10 +143,6 @@ The malloc function is a function in the C language library, so when it allocate
 ### 2. mmap function
 
 The mmap function is a very important function that we will encounter repeatedly later, so we will gain some understanding of this function here. The mmap function has two usages: the first is to map a file into the virtual memory of a process, allowing the process to read and write these objects through memory access; the second is to directly allocate an empty Memory Space in virtual memory without mapping a file. The function is as follows:&#x20;
-
-```c++
-void *mmap(void *addr,size_t length,int prot,int flags,int fd, off_t offset);
-```
 
 The explanation for each input parameter of this function is as follows:&#x20;
 
@@ -186,34 +170,9 @@ The memory allocated by malloc is all virtual memory, and at this time, the real
 
 To release memory, we call the free function. We only need to pass in the starting address to be released, which is the address returned after calling the malloc function. We do not need to pass in the size of the memory to be released because the memory management mechanism has already recorded the size information of the memory block allocated to this address. When the allocated memory is no longer needed, be sure to call free to release it; otherwise, a memory leak will occur.&#x20;
 
-```c++
-void free(void *ptr)
-```
-
-
-
 ## 2.1.5 Virtual Memory to Physical Memory
 
 Calling the malloc function only allocates a block of virtual memory space. This virtual space contains no data and does not occupy any real physical memory. Only when we write data to this memory will it consume physical memory. Readers can understand the entire process of allocating memory, writing data, and freeing memory through the following code.
-
-```c++
-int main() {
-    // alocate 10 byte memeory
-    int size = 10;
-    int* ptr = (int*)malloc(size * sizeof(int));
-    if (ptr == NULL) {
-        printf("allocate memory fail\n");
-        return 1;
-    }
-    // write data to memeory space
-    for (int i = 0; i < size; i++) {
-        ptr[i] = i;
-    }
-    // release memory
-    free(ptr);
-    return 0;
-}
-```
 
 When we write data to the allocated memory, the process is as follows:&#x20;
 
@@ -225,8 +184,6 @@ When we write data to the allocated memory, the process is as follows:&#x20;
 
 4\) Write data: After the operating system completes the page table update, the program will continue to execute, and at this time the above code can continue to complete the data writing operation.
 
-
-
 # 2.2 Composition of Memory Data
 
 The core of the Android system is the Linux system, so the memory space model of processes under the Android system is the same as that of Linux. From the perspective of Linux, at this time, the program carried by each process is actually the ART virtual machine program, which then allocates memory from the heap for the program actually running on this virtual machine. Therefore, the memory composition of processes in the Android system actually consists of two parts: the virtual machine and the program running on the virtual machine. As Android developers, what we often care more about is the memory area allocated by the virtual machine for the program, and we will then understand the data composition of this memory area.&#x20;
@@ -237,7 +194,7 @@ To clearly understand the composition of memory data in Android processes, we fi
 
 For rooted phones, we can directly view the maps file of a certain process through the command cat /proc/xxx/maps. Figure 2-7 shows partial maps file data of a certain program in the Android system:&#x20;
 
-![Figure 2-7  partial data of maps](https://my.feishu.cn/space/api/box/stream/download/asynccode/?code=NTRjODVjMzIwODVjMzQ1NGQxNWFmOWI0YzhjODhhMTNfRzc3VVczT2h5eVVxRnI5ZGlTYjJTNXhFcWtkT25QVGFfVG9rZW46TGZFNWJqRHJwbzRPb0t4czJxamNvOHN0bnllXzE3NzQxMjMyNzA6MTc3NDEyNjg3MF9WNA)
+![Figure 2-7  partial data of maps](https://my.feishu.cn/space/api/box/stream/download/asynccode/?code=ZmM4YjJlNzAwZGQ5Mjg0ZDQ3M2VkOTFmMDk4OWFiYWJfYnkyb3RTdFZQYU5zc21JaENCVXpKVzFlbng0OHk2VzFfVG9rZW46TGZFNWJqRHJwbzRPb0t4czJxamNvOHN0bnllXzE3NzQxMjU5NTg6MTc3NDEyOTU1OF9WNA)
 
 Taking the first row of data as an example, the explanations for each data segment from left to right are as follows:
 
@@ -252,8 +209,6 @@ Taking the first row of data as an example, the explanations for each data segme
 * 0 (inode): Represents the inode number of the mapped file. An inode can be used to identify the content and attributes of a file without relying on the file name. The file name is just an alias for the inode, and multiple file names can point to the same inode. If it is an anonymous mapping, it is 0
 
 * &#x20;\[anon:dalvik-main space (region space) ] (pathname): Represents the pathname of the mapped file, and is empty if it is an anonymous mapping&#x20;
-
-
 
 ## 2.2.2 Java Heap Memory
 
@@ -275,9 +230,7 @@ When the Android Virtual Machine starts, the Java heap is created, and all subse
 
 As can be seen from the maps file in Figure 2-6, the address range from 12c00000 to 32c00000 is exactly 512 MB in size and belongs to MainSpace. The addresses from 6fe2e000 to 726e0000 belong to ImageSpace, totaling approximately 40 MB, which stores various system-related libraries. Immediately following ImageSpace are ZygoteSpace, NonMovingSpace, and LargeObjectSpace, as shown in Figure 2-8.&#x20;
 
-![Figure 2-8 Composition of Heap Space](https://my.feishu.cn/space/api/box/stream/download/asynccode/?code=YzY1MmMxOGZhZTE3ZGY1MTliMTdhNmI5NzM5ZjNkNjdfb243YXBveVpMZmtVS2lHU1NNSFJyV2l1MjFxUThxUVNfVG9rZW46WHNDWmJhdjExbzhEWGJ4VE1pRWNlbTd0bmhkXzE3NzQxMjMyNzA6MTc3NDEyNjg3MF9WNA)
-
-
+![Figure 2-8 Composition of Heap Space](https://my.feishu.cn/space/api/box/stream/download/asynccode/?code=ZDhhMzM1NzQ0N2UwNGI4OGQzZWZlN2ZkZGRhNzYxNDFfOHI0MDJDRkRlUmJDam5OOVhUS2h5blNzcjV3c2JOcU1fVG9rZW46WHNDWmJhdjExbzhEWGJ4VE1pRWNlbTd0bmhkXzE3NzQxMjU5NTg6MTc3NDEyOTU1OF9WNA)
 
 ### 2. Heap Creation
 
@@ -285,98 +238,11 @@ Having understood the composition of the Java heap, we can then read the source 
 
 1\) Let's first look at the first part, and the code is as follows. The code in this part is mainly used to create ImageSpace, which is primarily used to load the boot.oat library, a part of the ART virtual machine.
 
-```c++
-Heap::Heap(……){
-  ……
-  std::vector<std::unique_ptr<space::ImageSpace>> boot_image_spaces;
-  // 1. Create ImageSpace,Used for loading boot.oat
-  if (space::ImageSpace::LoadBootImage(……,&boot_image_spaces,……)) {
-    ……
-  } else {
-    ……
-  }
-
-  // 2. Create ZygoteSpace
-  ……
-  
-  // 3. Create MainSpace
-  ……
-  
-  // 4. Manage ZygoteSpace
-  ……
-  
-  // 5. Manage MainSpace
-  ……
-  
-  // 6. Create And Manage LargeObjectSpace
-  ……
-}
-```
-
 2\) The code in the second part is mainly about creating ZygoteSpace, and the code is as follows.
-
-```c++
-MemMap non_moving_space_mem_map;
-if (separate_non_moving_space) {
-    // Create Virtual Memory of ZygoteSpace，which is 64MB
-    const char* space_name = is_zygote ? kZygoteSpaceName : kNonMovingSpaceName;
-    if (heap_reservation.IsValid()) {
-      non_moving_space_mem_map = heap_reservation.RemapAtEnd(
-          heap_reservation.Begin(), space_name, PROT_READ | PROT_WRITE, &error_str);
-    } else {
-      non_moving_space_mem_map = MapAnonymousPreferredAddress(
-          space_name, request_begin, non_moving_space_capacity, &error_str);
-    }
-    request_begin = kPreferredAllocSpaceBegin + non_moving_space_capacity;
-}
-```
 
 3\) The code in the third part mainly creates MainSpace. According to the code logic, if the type of the foreground GC mechanism (foreground\_collector\_type\_) is not Concurrent Copying (kCollectorTypeCC), a space named "main space" with a size of capacity\_, where capacity\_ is equivalent to the size configured by the system "dalvik.vm.heapsize" (mostly 512 MB), will be created. If the foreground or background GC mechanism is Semi-Space GC (kCollectorTypeSS), a space named "main space 1" will be created. Only the GC mechanisms in systems between Android 5 and Android 7 meet these two conditions, so two spaces named "main space" and "main space 1" will be created in these systems.
 
-```c++
-static const char* kMemMapSpaceName[2] = {"main space", "main space 1"};
- 
-MemMap main_mem_map_1;
-MemMap main_mem_map_2;  
-// When foreground GC is not using concurrent copying, it creates two spaces.Android systems from 5.x to 7.x adopt this GC algorithm.
-if (foreground_collector_type_ != kCollectorTypeCC) {
-    if (separate_non_moving_space || !is_zygote) {
-    //Create virtual memory for the space named “main space”.
-      main_mem_map_1 = MapAnonymousPreferredAddress(
-          kMemMapSpaceName[0], request_begin, capacity_, &error_str);
-    } else {
-        ……
-    }
-}
-//Likewise, Android systems from 5.x to 7.x adopt this GC algorithm.
-if (support_homogeneous_space_compaction ||
-  background_collector_type_ == kCollectorTypeSS ||
-  foreground_collector_type_ == kCollectorTypeSS) {
-    //Create virtual memory for the space named “main space 1”.
-    main_mem_map_2 = MapAnonymousPreferredAddress(
-        kMemMapSpaceName[1], main_mem_map_1.End(), capacity_, &error_str);
-}
-……  
-  
-```
-
 4\) In the code of the fourth part, the previously created ZygoteSpace will be managed through DlMallocSpace, as shown below.
-
-```java
-if (separate_non_moving_space) {
-    const size_t size = non_moving_space_mem_map.Size();
-    const void* non_moving_space_mem_map_begin = non_moving_space_mem_map.Begin();
-    //Through DlMallocSpace to manage ZygoteSpze
-    non_moving_space_ = 
-            space::DlMallocSpace::CreateFromMemMap(std::move(non_moving_space_mem_map),
-                                                               "zygote / non moving space",
-                                                               kDefaultStartingSize,
-                                                               initial_size,
-                                                               size,
-     ……
-}
-
-```
 
 5\) In the code of the fifth part, it will check if the foreground GC mechanism is concurrent copying collection. If so, it will create a space named "main space (region space)" with a size of 'capacity\_' \* 2, which is 1 GB in total. However, on some devices, 'capacity\_' has been adjusted to 256 MB, in which case the total space is only 512 MB, and it will be directly placed into RegionSpace for management. Since the foreground GC mechanism is concurrent copying collection only in Android 8 and above, this space will only exist in Android 8 and above systems. From the first line of the maps file in Figure 2-5, we can also see the 512 MB "main space (region space)".
 
@@ -384,54 +250,7 @@ If the foreground GC mechanism is not concurrent copying and recycling, that is,
 
 In other cases, both the "main space" and "main space 1" Memory Spaces are placed into MallocSpace for management.&#x20;
 
-```c++
-static const char* kRegionSpaceName = "main space (region space)";
-
-/*Foreground GC uses concurrent copying; 
-this GC algorithm is adopted on Android 8.0 and above.*/
-if (foreground_collector_type_ == kCollectorTypeCC) {
-    // Create a space with a capacity of capacity_ * 2, i.e., 1 GB.
-    MemMap region_space_mem_map =
-        space::RegionSpace::CreateMemMap(kRegionSpaceName, capacity_ * 2, request_begin);
-    ……
-} else if (IsMovingGc(foreground_collector_type_)) {
-    // Manage the previously created main space and main space 1 using BumpPointerSpace.
-    bump_pointer_space_ =
-            space::BumpPointerSpace::CreateFromMemMap("Bump pointer space 1",
-                                                      std::move(main_mem_map_1));
-
-    temp_space_ = space::BumpPointerSpace::CreateFromMemMap("Bump pointer space 2",
-                                                            std::move(main_mem_map_2));
-} else {
-    // Manage the previously created main space and main space 1 using MainMallocSpace.
-    CreateMainMallocSpace(std::move(main_mem_map_1), initial_size, growth_limit_, capacity_);
-    if (main_mem_map_2.IsValid()) {
-        const char* name = kUseRosAlloc ? kRosAllocSpaceName[1] : kDlMallocSpaceName[1];
-        main_space_backup_.reset(CreateMallocSpaceFromMemMap(std::move(main_mem_map_2),
-                                                             initial_size,
-                                                             growth_limit_,
-                                                             capacity_,
-                                                             name,
-                                                             /* can_move_objects= */ true));
-        ……
-    }
-}
-```
-
 6\) The code in the last part mainly creates the LargeObjectSpace, implemented as follows.
-
-```c++
-// Apply and Create LargeObjectSpace
-if (large_object_space_type == space::LargeObjectSpaceType::kFreeList) {
-    large_object_space_ = 
-            space::FreeListSpace::Create("free list large object space", capacity_);
-} else if (large_object_space_type == space::LargeObjectSpaceType::kMap) {
-    large_object_space_ = 
-            space::LargeObjectMapSpace::Create("mem map large object space");
-} else {
-    ……
-}
-```
 
 By reading the source code of heap creation above, we can know that in Android 5 to Android 7 versions, spaces named "main space" and "main space 1" with a size of 512M each will be created, and both main space and main space 1 will be maintained and managed through MallocSpace. In actual use, only one of the spaces will be used, and only when GC is executed will the other space come into play. At this time, the GC collector will move all the live objects in the previously used space to the other space. In Android 8.0 and above versions, main space (region space) is created and maintained and managed through RegionSpace.&#x20;
 
@@ -455,99 +274,13 @@ Although the Java heap consists of many spaces, in fact, Java objects in applica
 
 There are two ways to create and load an object in Java, namely explicit loading and implicit loading. Explicit loading uses the `Class.forName` or `ClassLoader.loadClass` method to load the object. Implicit loading uses the new keyword, reflection, accessing Static Variables, etc., to load the object. Both of these two ways will eventually call the `AllocObjectWithAllocator` method to allocate memory in the Java heap. This method is located in heap-inl.h file. Below is the simplified logical code of this memory allocation function.
 
-```c++
-inline mirror::Object* Heap::AllocObjectWithAllocator(……) {                 
-  ……
-  //1.Check whether it is a LargeObject; if so, allocate memory in the LargeObjectSpace.
-  if (kCheckLargeObject && UNLIKELY(ShouldAllocLargeObject(klass, byte_count))) {
-    obj = AllocLargeObject<kInstrumented, PreFenceVisitor>(self, &klass, byte_count,
-                                                           pre_fence_visitor);
-    ……
-  }
-
-  ……
-  //2.not a LargeObject, call TryToAllocate to allocate memory in the main space.
-  obj = TryToAllocate<kInstrumented, false>(self, allocator, byte_count, 
-                              &bytes_allocated,&usable_size, &bytes_tl_bulk_allocated);
-  if (UNLIKELY(obj == nullptr)) {
-    //3. If the allocation fails, trigger a GC and then attempt the allocation again.
-    obj = AllocateInternalWithGc(self,
-                                 allocator,
-                                 kInstrumented,
-                                 byte_count,
-                                 &bytes_allocated,
-                                 &usable_size,
-                                 &bytes_tl_bulk_allocated,
-                                 &klass);
-    ……        
-  }
-  ……
-  return obj.Ptr();
-}
-```
-
 Through the above code process, it can be seen that if the Java object applying for memory is a large object, AllocLargeObject will be called to allocate in LargeObjectSpace; if not, TryToAllocate will be called to allocate in MainSpace. If the allocation fails, GC will be executed and then the allocation will continue.&#x20;
 
 What is a large object? From the code of the `ShouldAllocLargeObject` judgment interface below, we can see that an object is considered a large object if the requested memory is greater than or equal to large\_object\_threshold\_ (which is 12 KB) and it is a primitive type array or a string.
 
-```c++
-inline bool Heap::ShouldAllocLargeObject(ObjPtr<mirror::Class> c, size_t byte_count) const {
-  return byte_count >= large_object_threshold_ && 
-          (c->IsPrimitiveArray() || c->IsStringClass());
-}
-```
-
-
-
 2\) Release Process
 
 After understanding the object allocation process, let's take a look at the object deallocation process. When allocating memory in the Java heap, if the allocation fails or the total memory size exceeds the threshold after allocation, GC will be executed. In the above allocation process, we can see that after a memory allocation failure, the AllocateInternalWithGc interface will be called to reallocate memory. This interface will call the CollectGarbageInternal method located in the heap.cc  file to perform GC, and the code is as follows.&#x20;
-
-```c++
-collector::GcType Heap::CollectGarbageInternal(collector::GcType gc_type,
-                                               GcCause gc_cause,
-                                               bool clear_soft_references,
-                                               uint32_t requested_gc_num) {
-  ……
-
-  collector::GarbageCollector* collector = nullptr;
-  //1. Select the corresponding garbage collector.
-  if (compacting_gc) {
-    switch (collector_type_) {
-      case kCollectorTypeSS:
-        semi_space_collector_->SetFromSpace(bump_pointer_space_);
-        semi_space_collector_->SetToSpace(temp_space_);
-        semi_space_collector_->SetSwapSemiSpaces(true);
-        collector = semi_space_collector_;
-        break;
-      case kCollectorTypeCC:
-        collector::ConcurrentCopying* active_cc_collector;
-        if (use_generational_cc_) 
-          active_cc_collector = (gc_type == collector::kGcTypeSticky) ?
-                  young_concurrent_copying_collector_ : concurrent_copying_collector_;
-          active_concurrent_copying_collector_.store(active_cc_collector,
-                                                     std::memory_order_relaxed);
-          collector = active_cc_collector;
-        } else {
-          collector = active_concurrent_copying_collector_.load(std::memory_order_relaxed);
-        }
-        break;
-      default:        
-    }
-    ……
-  } else if (current_allocator_ == kAllocatorTypeRosAlloc ||
-      current_allocator_ == kAllocatorTypeDlMalloc) {
-    collector = FindCollectorByGcType(gc_type);
-  } else {
-    LOG(FATAL) << "Invalid current allocator " << current_allocator_;
-  }
-
-  //2. Eexcute GC
-  collector->Run(gc_cause, clear_soft_references || runtime->IsZygote());
-  ……
-  return gc_type;
-}
-```
 
 The logic of this interface is relatively simple, mainly doing the following two things:&#x20;
 
@@ -559,9 +292,7 @@ Different garbage collectors correspond to different GC algorithms. The knowledg
 
 For the garbage collector of the ART virtual machine, it determines whether an object can be reclaimed through reachability analysis. The garbage collector analyzes the reference chain of each object in the space. If the reference chain of an object is ultimately held by a GC Root, it means that the object cannot be reclaimed. Otherwise, it can be reclaimed. As shown in Figure 2-9, although objects 6 and 7 are held by object 5, object 5 is not held by GC Roots, so the garbage collector will determine that objects 5, 6, and 7 are all objects that can be cleared and reclaimed, while the reference chains of objects 1, 2, 3, and 4 are held by GC Roots, so they cannot be cleared and reclaimed by the garbage collector.&#x20;
 
-![Figure 2-9 GC Reachability Judgment](https://my.feishu.cn/space/api/box/stream/download/asynccode/?code=NmNjZmY0NDk4YjA4MTRkMzE1OWEyZmI3ODlkYzUwNDZfZUk0Sjl2SlhlN05ncUk4bFBJWjUwd1M1SGFJUURDRDlfVG9rZW46RVA1UGJqaVlOb1czSWt4Vml3eWNLS1NnbkVnXzE3NzQxMjMyNzA6MTc3NDEyNjg3MF9WNA)
-
-
+![Figure 2-9 GC Reachability Judgment](https://my.feishu.cn/space/api/box/stream/download/asynccode/?code=YTI5YTMxZmM0NzMxZThlYTc3NTIyYWRlODQwOWU1ZDlfUUl3VDBYV0kyVFRmTE5rd1JBcHpSVURDZUM1SVpjMFlfVG9rZW46RVA1UGJqaVlOb1czSWt4Vml3eWNLS1NnbkVnXzE3NzQxMjU5NTg6MTc3NDEyOTU1OF9WNA)
 
 GC Roots mainly include the following items:
 
@@ -593,20 +324,7 @@ For an Activity, once it has been destroyed, as long as this Activity is not hel
 
 In addition to when the business ends, we also need to proactively clear non-essential objects and data when there is insufficient memory. For example, when Java heap memory is insufficient, we can implement strategies such as cleaning the cache in the application. So how can we know that the Java heap is insufficient? This requires adding a detection mechanism. We can start an independent sub-thread and then perform detection at regular intervals to obtain Java heap information. The information can be obtained either through AMS to get meminfo or through the Runtime.getRuntime() interface. However, in this scenario, using Runtime.getRuntime() is appropriate because it has the least performance overhead, and we only need to know the maximum memory and used memory of the Java heap.&#x20;
 
-```java
-//Retrieve memoryInfo by AMS  
-ActivityManager am = (ActivityManager) context.getSystemService(Context.ACTIVITY_SERVICE);
-ActivityManager.MemoryInfo memoryInfo = new ActivityManager.MemoryInfo();
-
-//Retrieve the memory usage limit of the current virtual machine instance
-Runtime.getRuntime().maxMemory()
-//Retrieve the currently allocated memory
-Runtime.getRuntime().totalMemory()
-```
-
 Once we obtain the maximum available memory and the used Java heap memory, we can determine whether the memory usage has exceeded the threshold we set. If it has, we will notify each business, cache, singleton object, etc. through a callback to perform cache cleanup.&#x20;
-
-
 
 ## 2.4.2 Reduce data loading
 
@@ -648,10 +366,5 @@ However, changing the logic of system libraries through Native Hook to increase 
 
 In addition to expanding the available memory space, we can also indirectly increase the available memory size by reducing the space in the memory space that is occupied by the system but not actually used. This method is often used in the optimization of virtual memory and will also be further explained through practical cases in the following chapters.&#x20;
 
-| Source code appearing in this chapter:<br />heap.cc: https://cs.android.com/android/platform/superproject/+/main:art/runtime/gc/heap.cc<br />heap-inl.h: https://cs.android.com/android/platform/superproject/+/main:art/runtime/gc/heap-inl.h |
+| Source code appearing in this chapter:<br />heap.cc: <https://cs.android.com/android/platform/superproject/+/main:art/runtime/gc/heap.cc><br />heap-inl.h: <https://cs.android.com/android/platform/superproject/+/main:art/runtime/gc/heap-inl.h> |
 | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-
-
-
-
-
