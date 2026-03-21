@@ -5,6 +5,7 @@ This is the English translation of the highly acclaimed Chinese book **《Androi
 ## About this Book
 
 Original Title: **《Android性能优化之道》**
+English Title: **The Art of Android Performance Optimization**
 
 This book has received significant praise and is widely recognized in China as a definitive guide for Android performance optimization.
 
