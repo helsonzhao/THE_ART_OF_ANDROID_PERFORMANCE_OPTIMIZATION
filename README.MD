@@ -19,4 +19,7 @@ This repository aims to bring these valuable insights to the global Android deve
   - [1.4 Target Audience of This Book](Chapter%201%20-%20Preface.md#14-target-audience-of-this-book)
   - [1.5 How to Read This Book](Chapter%201%20-%20Preface.md#15-how-to-read-this-book)
 - [Chapter 2 - Memory Optimization Principles](Chapter%202%20-%20Memory%20Optimization%20Principles.md)
+  - [2.1 Virtual Memory](Chapter%202%20-%20Memory%20Optimization%20Principles.md#21-virtual-memory)
+  - [2.2 Composition of Memory Data](Chapter%202%20-%20Memory%20Optimization%20Principles.md#22-composition-of-memory-data)
+  - [2.4 Methodology for Memory Optimization](Chapter%202%20-%20Memory%20Optimization%20Principles.md#24-methodology-for-memory-optimization)
 - (More chapters coming soon...)
