@@ -6,7 +6,9 @@ This is the English translation of the highly acclaimed Chinese book **《Androi
 
 Original Title: **《Android性能优化之道》**
 
-This book has received significant praise and is widely recognized in China as a definitive guide for Android performance optimization. It covers a broad range of topics
+This book has received significant praise and is widely recognized in China as a definitive guide for Android performance optimization.
+
+You can also find more articles and insights about this book on the author's personal blog: [Helson's Blog - Android Performance](https://blog.helson.uk/tags/androidperformance)
 
 This repository aims to bring these valuable insights to the global Android developer community through a clear and accurate translation.
 
