@@ -56,6 +56,8 @@ During the indicator collection process, we also need to pay attention to the im
 
 Having understood the essence of performance optimization, we are already able to design effective optimization solutions, but this does not mean that we can design more systematic optimization solutions. After all, performance optimization is a vast topic. At this point, we may have some fragmented ideas, but our solutions cannot be systematic and comprehensive. Only a systematic and comprehensive optimization solution can achieve the best optimization results and bring the greatest improvement to the program experience. As shown in Figure 1-1, to create a systematic optimization solution, we still need to proceed based on the three dimensions of application layer, system layer, and hardware layer.&#x20;
 
+![Figure1-1 Dimensions of Performance Optimization](assets/chapter1_img_1.png)
+
 1. **Application layer**
 
 The application layer mainly refers to the programs we develop, and optimization targeting the application layer is the most common type of optimization carried out by developers. When performing optimization, we usually understand the business logic and then optimize through means such as multi-threading, preloading, and caching. However, just doing this will result in very limited optimization effects. We need to think based on the essence of performance optimization, that is, how to fully and reasonably utilize hardware resources. Therefore, optimization targeting the application layer usually has two directions: one is how to enable the business to make more full use of hardware resources such as CPU and cache to enhance the experience; the other is how to manage and control the business side to use these resources reasonably.&#x20;
@@ -98,7 +100,7 @@ Performance optimization at the system level must be based on our understanding 
 
 * Hardware layer
 
-For the hardware layer, we need to be familiar with the characteristics of hardware such as CPU,  cache, etc.  If we know how many cores a CPU consists of, which are big cores, and which are small cores, we will naturally think of whether we can improve performance by binding core threads to big cores; if we understand the design of registers, caches, and main memory in the storage structure, we will naturally consider whether we can improve performance based on this characteristic, such as placing core data in the cache as much as possible to improve performance.&#x20;
+For the hardware layer, we need to be familiar with the characteristics of hardware such as CPU, cache, etc. If we know how many cores a CPU consists of, which are big cores, and which are small cores, we will naturally think of whether we can improve performance by binding core threads to big cores; if we understand the design of registers, caches, and main memory in the storage structure, we will naturally consider whether we can improve performance based on this characteristic, such as placing core data in the cache as much as possible to improve performance.&#x20;
 
 * Other
 
@@ -131,6 +133,8 @@ Different ways of thinking will ultimately lead us to design different optimizat
 * **Optimized process**
 
 In the actual process of Performance optimization, how to optimize is only one part of it. We also need to do more, as shown in Figure 1-2, including monitoring, optimization, data benefit acquisition, and anti-deterioration. These parts form a closed loop to constitute a complete optimization process. During Performance optimization, we need to consider and do well in all aspects.&#x20;
+
+![Figure1-2 Optimization Process](assets/chapter1_img_2.png)
 
 * Monitoring: That is, monitoring various performance indicators during the application's operation. To do a good job in monitoring, in addition to minimizing the performance overhead caused by monitoring logic, it is also necessary to monitor the root causes as much as possible. For example, in memory monitoring, besides monitoring the memory indicator data of the application, it should also be able to monitor the memory usage proportion of each business, as well as root cause items such as large collections, large images, and large objects. In this way, we can directly pinpoint the problem through monitoring. A complete and excellent monitoring solution enables us to more efficiently detect and resolve anomalies.
 
