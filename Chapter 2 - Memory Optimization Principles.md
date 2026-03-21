@@ -38,13 +38,13 @@ So what is virtual memory? And how does virtual memory solve the various problem
 
 Virtual memory technology is equivalent to allocating each process a exclusive and contiguous block of memory, except that this memory is virtual. The simplified model of virtual memory is shown in Figure 2-1. From the simplified model diagram, it can be seen that each process has its own unique virtual memory, which consists of system space and user space. The kernel space stores the operating system's data, and this data is the same across all processes, all mapped to the same physical memory segment; the user space stores the application's data. When an application writes data to the address of its corresponding virtual memory, the operating system will map the virtual address space to the actual physical memory address, and data can be written after the mapping is completed.&#x20;
 
-![Figure 2-1 Simplified Model Diagram of Virtual Memory](https://my.feishu.cn/space/api/box/stream/download/asynccode/?code=ZTViNmI2ODBjNmIzZTdhZWZlNWMzNGNjYzM4MDA0ZDZfUUNoWDlIRFM2RXpxOERIb1A1WnFKYUZMWDhNSGVjcHlfVG9rZW46QVRJdGJVcVNRb1lmRWF4NjR4MmNRVG9MbmhkXzE3NzQxMjU5NTg6MTc3NDEyOTU1OF9WNA)
+![Figure 2-1 Simplified Model Diagram of Virtual Memory](assets/chapter2_img_1.png)
 
 The size of virtual memory is 2^32 bytes, i.e., 4GB, on a 32-bit system; on a 64-bit system, it is 2^48 bytes, i.e., 16TB. The reason it is not 2^64 ByteDance is that 2^48 bytes is already large enough, and the space of 2^64 bytes would only cause the system to consume more resources to maintain and manage this space. Virtual memory is managed and mapped to physical memory on a page basis, with each page being 4KB in size.&#x20;
 
 Here, I assumes a scenario where a 32-bit system has only 2GB of physical memory, and uses the mapping model of virtual memory and physical memory as an example to help readers better understand. This scenario is shown in Figure 2-2, where the 4GB virtual memory is divided into 4194304 pages, each with a size of 4KB. When a page in virtual memory needs to write data, it maps a 4KB block of physical memory; if a page in virtual memory does not write data, no mapping occurs. The address mapping from virtual memory to physical memory is completed by the  memory management  unit (MMU) of the computer, which belongs to the hardware rather than the system software, so the mapping speed is very fast.&#x20;
 
-![Figure 2-2 Mapping Model of Virtual Memory and Physical Memory in a 32-bit System](https://my.feishu.cn/space/api/box/stream/download/asynccode/?code=NDYxOTgwMmQ0OTQwMTgxYTFjNDQwZDgxYWMzZDNkMzFfMUFjTWZxcVJWNElrbFRidktac2F2cEhrVDRQdDZhWHZfVG9rZW46VWRNUWJpMWl4b0JWNFF4cHllamNFeVhhbnJnXzE3NzQxMjU5NTg6MTc3NDEyOTU1OF9WNA)
+![Figure 2-2 Mapping Model of Virtual Memory and Physical Memory in a 32-bit System](assets/chapter2_img_2.png)
 
 ## 2.1.3 ELF Files
 
@@ -52,7 +52,7 @@ Previously, we have learned that virtual memory consists of data from two parts:
 
 All files that an operating system can execute must conform to a certain format. For example, in the Windows system,.exe program files and.dll library files are all in the PE (Portable Executable) file format. In Linux, executable files, including .o relocatable files and .so library files, are all in the ELF (Executable and Linkable Format) file format. When the system needs to execute a program, it first loads the data in the program into the virtual memory block of the user space. Therefore, to understand what data exists in the user space, we need to first understand the ELF file format, as shown in Figure 2-3:&#x20;
 
-![Figure 2-3 ELF File Format](https://my.feishu.cn/space/api/box/stream/download/asynccode/?code=YTBmOTA3ODBhNTE0NmIyZDhlYWIwN2YyMTgwM2M5NTlfc1Z6dFoyWGJQT0xsOWtDS2RzS1J6YWgxU0RubHRBZEhfVG9rZW46R24zNWJkMklEb0dJUlh4VkFCVWNNa1hZblRoXzE3NzQxMjU5NTg6MTc3NDEyOTU1OF9WNA)
+![Figure 2-3 ELF File Format](assets/chapter2_img_3.png)
 
 &#x20;An ELF file generally consists of an ELF Header, a Program Header Table, a Section Header Table, and multiple Sections, and their explanations are as follows:&#x20;
 
@@ -68,7 +68,7 @@ Let's continue to take a detailed look at these two parts: the data segment and 
 
 By using the readelf tool provided in the Android NDK, execute the command "readelf -S xxx.so" to read the data segment information of the libart library. As shown in Figure 2-4, it can be seen that the art virtual machine library file has more than 30 data segments.&#x20;
 
-![Figure 2-4 Segment Information of libart.so Library File ](https://my.feishu.cn/space/api/box/stream/download/asynccode/?code=MjQ1OTk4MGVjODc0ZTczNDkwZTUyNGZjYWE2MGY4ZDFfN2RqVm1uN3pxcVVZcmIydjZZR3l5OGJPT25vc3VDZTZfVG9rZW46UlpZZmJCa3J3bzRYR1N4SE5mRWNXdFdibmxvXzE3NzQxMjU5NTg6MTc3NDEyOTU1OF9WNA)
+![Figure 2-4 Segment Information of libart.so Library File ](assets/chapter2_img_4.png)
 
 Since the number of sections is relatively large, we will only introduce some of the most common data sections here:
 
@@ -112,7 +112,7 @@ Since the number of sections is relatively large, we will only introduce some of
 
 We then use the readelf tool to execute the command "readelf -l libart.so" to read the program segment information of the libart library. As shown in Figure 2-5, we can see that the art virtual machine library file organizes the above 31 data segments (Section) into 9 program segments (Program Segment)
 
-![Figure2-5 Program Segment Information in art Library](https://my.feishu.cn/space/api/box/stream/download/asynccode/?code=ZjdmMGU3ZmYwNzNlOTQwYjBlMDQ1NWNkNjk0NWFkMTZfMDVKUEhjbVhJWFFRVWRYRXNxVzlxamZiejU0Q2NiMDdfVG9rZW46WFQzNmJLenRZb282WE54SjVSNGNMNHBTbkhnXzE3NzQxMjU5NTg6MTc3NDEyOTU1OF9WNA)
+![Figure2-5 Program Segment Information in art Library](assets/chapter2_img_5.png)
 
 ### 3. Structure of Virtual Memory
 
@@ -122,7 +122,7 @@ After storing the data of the ELF file, the stack space and heap space follow. A
 
 Above the stack space is the system space, which is used to store operating system data. As shown in Figure 2-6, it is a structural model diagram of the ELF file and virtual memory in a 32-bit system. Through this model diagram, we can have a clearer understanding of the structure of virtual memory.
 
-![Figure 2-6 Structural Model Diagram of ELF Files and Virtual Memory](https://my.feishu.cn/space/api/box/stream/download/asynccode/?code=YzRjYTUwZmMxOWFjMzk3M2I0OGNlMjRkYzk4YjAxOWJfbWY3QzR6NTE0dDVFcnJMVW8wMzVRSnEzTkd2SWtKZzVfVG9rZW46SDZ3TWIyYXM0b3llV0F4YnVsMGNVSUlmbkpjXzE3NzQxMjU5NTg6MTc3NDEyOTU1OF9WNA)
+![Figure 2-6 Structural Model Diagram of ELF Files and Virtual Memory](assets/chapter2_img_6.png)
 
 ## 2.1.4 Virtual Memory Allocation and Deallocation
 
@@ -194,7 +194,7 @@ To clearly understand the composition of memory data in Android processes, we fi
 
 For rooted phones, we can directly view the maps file of a certain process through the command cat /proc/xxx/maps. Figure 2-7 shows partial maps file data of a certain program in the Android system:&#x20;
 
-![Figure 2-7  partial data of maps](https://my.feishu.cn/space/api/box/stream/download/asynccode/?code=ZmM4YjJlNzAwZGQ5Mjg0ZDQ3M2VkOTFmMDk4OWFiYWJfYnkyb3RTdFZQYU5zc21JaENCVXpKVzFlbng0OHk2VzFfVG9rZW46TGZFNWJqRHJwbzRPb0t4czJxamNvOHN0bnllXzE3NzQxMjU5NTg6MTc3NDEyOTU1OF9WNA)
+![Figure 2-7  partial data of maps](assets/chapter2_img_7.png)
 
 Taking the first row of data as an example, the explanations for each data segment from left to right are as follows:
 
@@ -230,7 +230,7 @@ When the Android Virtual Machine starts, the Java heap is created, and all subse
 
 As can be seen from the maps file in Figure 2-6, the address range from 12c00000 to 32c00000 is exactly 512 MB in size and belongs to MainSpace. The addresses from 6fe2e000 to 726e0000 belong to ImageSpace, totaling approximately 40 MB, which stores various system-related libraries. Immediately following ImageSpace are ZygoteSpace, NonMovingSpace, and LargeObjectSpace, as shown in Figure 2-8.&#x20;
 
-![Figure 2-8 Composition of Heap Space](https://my.feishu.cn/space/api/box/stream/download/asynccode/?code=ZDhhMzM1NzQ0N2UwNGI4OGQzZWZlN2ZkZGRhNzYxNDFfOHI0MDJDRkRlUmJDam5OOVhUS2h5blNzcjV3c2JOcU1fVG9rZW46WHNDWmJhdjExbzhEWGJ4VE1pRWNlbTd0bmhkXzE3NzQxMjU5NTg6MTc3NDEyOTU1OF9WNA)
+![Figure 2-8 Composition of Heap Space](assets/chapter2_img_8.png)
 
 ### 2. Heap Creation
 
@@ -292,7 +292,7 @@ Different garbage collectors correspond to different GC algorithms. The knowledg
 
 For the garbage collector of the ART virtual machine, it determines whether an object can be reclaimed through reachability analysis. The garbage collector analyzes the reference chain of each object in the space. If the reference chain of an object is ultimately held by a GC Root, it means that the object cannot be reclaimed. Otherwise, it can be reclaimed. As shown in Figure 2-9, although objects 6 and 7 are held by object 5, object 5 is not held by GC Roots, so the garbage collector will determine that objects 5, 6, and 7 are all objects that can be cleared and reclaimed, while the reference chains of objects 1, 2, 3, and 4 are held by GC Roots, so they cannot be cleared and reclaimed by the garbage collector.&#x20;
 
-![Figure 2-9 GC Reachability Judgment](https://my.feishu.cn/space/api/box/stream/download/asynccode/?code=YTI5YTMxZmM0NzMxZThlYTc3NTIyYWRlODQwOWU1ZDlfUUl3VDBYV0kyVFRmTE5rd1JBcHpSVURDZUM1SVpjMFlfVG9rZW46RVA1UGJqaVlOb1czSWt4Vml3eWNLS1NnbkVnXzE3NzQxMjU5NTg6MTc3NDEyOTU1OF9WNA)
+![Figure 2-9 GC Reachability Judgment](assets/chapter2_img_9.png)
 
 GC Roots mainly include the following items:
 
