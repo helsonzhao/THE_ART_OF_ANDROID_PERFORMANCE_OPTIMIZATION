@@ -276,7 +276,7 @@ Here, I still simulates a scenario in the sample program where the main thread n
 
 To optimize the waiting time of locks, the first step is to capture a Trace file. A Trace file is a file used for performance analysis and debugging, which records the running status of an application or system, including detailed information such as CPU usage, memory allocation, thread activity, function calls, and system events. There are also many ways to capture a Trace, such as capturing a systrace via the systrace.py script (this method has been deprecated in Android 10 and above), capturing via Android Studio's Profile, capturing via Perfetto, and other methods. I mainly introduce the method of capturing via Perfetto here, which is a Trace capture tool provided by Android 10 and above versions and is very powerful.
 
-There are also many ways to capture traces with Perfetto, such as capturing through the visualization website provided by Perfetto ([https://ui.perfetto.dev/](https://link.zhihu.com/?target=https%3A//ui.perfetto.dev/)), as shown in Figure 5-2. After connecting the device via USB, you can click to capture on the Record page.
+There are also many ways to capture traces with Perfetto, such as capturing through the visualization website provided by Perfetto ([https://ui.perfetto.dev/](https://ui.perfetto.dev/)), as shown in Figure 5-2. After connecting the device via USB, you can click to capture on the Record page.
 
 ![Figure 5-2 Pefetto fetch trace interface](https://raw.githubusercontent.com/helsonzhao/THE_ART_OF_ANDROID_PERFORMANCE_OPTIMIZATION/main/assets/chapter5_img_2.png)
 
