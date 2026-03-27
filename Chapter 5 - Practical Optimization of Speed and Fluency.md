@@ -281,8 +281,7 @@ There are also many ways to capture traces with Perfetto, such as capturing thro
 ![Figure 5-2 Pefetto fetch trace interface](https://raw.githubusercontent.com/helsonzhao/THE_ART_OF_ANDROID_PERFORMANCE_OPTIMIZATION/main/assets/chapter5_img_2.png)
 
 You can also open system tracing in the device's developer mode to capture, as shown in Figure 5-3. Configure the content to be captured through categories, and then click "Record Trace" to capture the Trace.&#x20;
-
-![Figure 5-3 Trace entry in developer mode](https://raw.githubusercontent.com/helsonzhao/THE_ART_OF_ANDROID_PERFORMANCE_OPTIMIZATION/main/assets/chapter5_img_3.png)
+<center><img src="https://raw.githubusercontent.com/helsonzhao/THE_ART_OF_ANDROID_PERFORMANCE_OPTIMIZATION/main/assets/chapter5_img_3.png" alt="Figure 5-3 Trace entry in developer mode" width="250"/></center>
 
 It can also be captured via the command line, which is a method I recommended because it is more flexible. Here, let's take a look at how to capture Perfetto's Trace logs via the command line. Perfetto is implemented based on Android's system tracing service, which is enabled by default after Android 11. However, for devices running Android 11 or lower, the system tracing service needs to be manually enabled using the following command.&#x20;
 
