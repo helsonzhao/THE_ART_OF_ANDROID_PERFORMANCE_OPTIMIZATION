@@ -83,8 +83,6 @@ In the previous chapter, we have learned the function of the SP (Stack Pointer) 
 
 <img src="https://raw.githubusercontent.com/helsonzhao/THE_ART_OF_ANDROID_PERFORMANCE_OPTIMIZATION/main/assets/chapter7_img_1.png" alt="Figure 7-1 Schematic diagram of FP and SP" width="350" style="margin:auto;"/>
 
-
-
 Once we understand SP and FP, we can also understand what a stack frame is. It is a contiguous Memory Space created at runtime during a function call to maintain the function's local variables, parameters, and other information related to the function's execution. Whenever a function is called, a new stack frame is created in the program's stack space to store the function's local variables, parameters, and other necessary information. When the function finishes executing, its stack frame is destroyed, thereby releasing the corresponding Memory Space.&#x20;
 
 ### 2. Stack Frame Backtrace
@@ -104,8 +102,6 @@ The explanations for these three instructions are as follows:&#x20;
 Therefore, in a scenario where multiple function calls occur, such as function A calling function B, and function B calling function C, its stack frame model is shown in Figure 7-3.
 
 <img src="https://raw.githubusercontent.com/helsonzhao/THE_ART_OF_ANDROID_PERFORMANCE_OPTIMIZATION/main/assets/chapter7_img_3.png" alt="Figure 7-3 FP and SP model diagrams" width="350" style="margin:auto;"/>
-
-
 
 From the model diagram, it can be found that by using the value of the next address of the FP register, the data of the LR register can be obtained, which is the return address of the previous function. By using the value of the address two positions after the FP register, the FP address of the previous function can be obtained. Next, the LR and FP data stored in the stack of the previous function can be found in the same way, and thus the address of the function before the previous one and its stack bottom address are also known. This loop constitutes a stack traceback process.
 
@@ -158,7 +154,7 @@ A complete Native stack log should also include register data, so we can also pr
 
 ## 7.1.3 Use Open Source Libraries
 
-After understanding the principles and processes of the Native Crash capture solution, we can develop our own monitoring solution. When implementing it in practice, we need to be compatible with different platforms, such as ARM32, AMR64, X86, etc. Under different command platforms, the details of the solution vary. Therefore, designing a complete and stable monitoring solution on our own is actually a very cumbersome and complex task. To prevent readers from expending a great deal of effort on reinventing the wheel, I introduces a mature and stable open-source library for Native Crash capture : [ Breakpad ](https://github.com/google/breakpad), which is a cross-platform crash monitoring and analysis framework launched by Google. There are mainly three steps to using this framework:&#x20;
+After understanding the principles and processes of the Native Crash capture solution, we can develop our own monitoring solution. When implementing it in practice, we need to be compatible with different platforms, such as ARM32, AMR64, X86, etc. Under different command platforms, the details of the solution vary. Therefore, designing a complete and stable monitoring solution on our own is actually a very cumbersome and complex task. To prevent readers from expending a great deal of effort on reinventing the wheel, I introduces a mature and stable open-source library for Native Crash capture : [Breakpad](https://github.com/google/breakpad), which is a cross-platform crash monitoring and analysis framework launched by Google. There are mainly three steps to using this framework:&#x20;
 
 1\) Source code compilation: Since Breakpad is cross-platform, when using it on Android, it must first be compiled into a so library on the Android platform before it can be used.
 
@@ -469,15 +465,11 @@ To trim an Hprof file, one must first have a certain understanding of the data c
 
 ![Figure 7-13 Simplified structure of Hprof](https://raw.githubusercontent.com/helsonzhao/THE_ART_OF_ANDROID_PERFORMANCE_OPTIMIZATION/main/assets/chapter7_img_13.png)
 
-
-
 Next, let's take a detailed look at the data composition of the two data segments, Header and Record.
 
 1\) Header: Records the meta information of the Hprof file, such as version number, identifier size, timestamp, etc. The data format of the Header is shown in Figure 7-14.
 
 ![Figure 7-14 Data structure of Header](https://raw.githubusercontent.com/helsonzhao/THE_ART_OF_ANDROID_PERFORMANCE_OPTIMIZATION/main/assets/chapter7_img_14.png)
-
-
 
 The data structure defined according to the Header format is as follows.&#x20;
 
@@ -493,8 +485,6 @@ class HprofHeader {
 2\) Record: The specific content of the Hprof file, which consists of multiple Records. Each Record is composed of four parts: type, timestamp, data length, and data content, as shown in Figure 7-15.
 
 ![Figure 7-15 Structure of Record Data Segment](https://raw.githubusercontent.com/helsonzhao/THE_ART_OF_ANDROID_PERFORMANCE_OPTIMIZATION/main/assets/chapter7_img_15.png)
-
-
 
 The data structure defined according to the Record data segment structure is as follows.&#x20;
 
@@ -716,13 +706,9 @@ If the state of the thread is in states such as Block or Waiting, this usually m
 
 ![Figure 7-27 A task blocking causes ANR](https://raw.githubusercontent.com/helsonzhao/THE_ART_OF_ANDROID_PERFORMANCE_OPTIMIZATION/main/assets/chapter7_img_27.png)
 
-
-
 If the state of the main thread is in the Running state, it indicates that the ANR is not caused by the current stack, but by certain functions before the current stack. In this case, it may be due to too many tasks in the main thread, or some tasks in the main thread taking a long time. These factors accumulate and cause the main thread to fail to respond to the tasks of the four major components in a timely manner, as shown in Figure 7-28.&#x20;
 
 ![Figure 7-28 Task stacking leads to ANR](https://raw.githubusercontent.com/helsonzhao/THE_ART_OF_ANDROID_PERFORMANCE_OPTIMIZATION/main/assets/chapter7_img_28.png)
-
-
 
 This type of ANR cannot be troubleshooted through direct stack analysis, so it is generally quite complex to troubleshoot. In this case, it is usually indirectly converted into an analysis of time-consuming functions. Common time-consuming functions are mainly caused by factors such as complex logic, slow I/O, and waiting for locks. We need to reduce the time consumption of functions through offline Trace logs or online collection of time-consuming methods, thereby indirectly reducing the probability of this type of ANR occurring. The slow function monitoring to be discussed below is a solution for indirectly analyzing and managing ANR.&#x20;
 
@@ -803,8 +789,5 @@ class MethodCostMethodVisitor(
 
 Optimizing the detected slow functions can effectively reduce the probability of ANR occurrence. However, instrumenting each method will inevitably affect the performance of the program, so we should avoid enabling slow function monitoring for all users and only enable it for a small number of test users.&#x20;
 
-
-
-| breakpad：https://github.com/google/breakpad<br />tailor: https://github.com/bytedance/tailor<br />signal\_catcher.cc: <br />https://cs.android.com/android/platform/superproject/+/android-14.0.0\_r9:art/runtime/signal\_catcher.cc<br />hprof.cc: <br />https://cs.android.com/android/platform/superproject/+/android-14.0.0\_r9:art/runtime/hprof/hprof.cc |
+| breakpad：https://github.com/google/breakpad<br />tailor: https://github.com/bytedance/tailor<br />signal_catcher.cc: <br />https://cs.android.com/android/platform/superproject/+/android-14.0.0_r9:art/runtime/signal_catcher.cc<br />hprof.cc: <br />https://cs.android.com/android/platform/superproject/+/android-14.0.0_r9:art/runtime/hprof/hprof.cc |
 | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-
