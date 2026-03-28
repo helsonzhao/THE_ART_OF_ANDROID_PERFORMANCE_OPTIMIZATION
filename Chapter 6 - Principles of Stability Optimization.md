@@ -6,7 +6,7 @@ To do a good job in stability optimization, one must first master the underlying
 
 ANR (Application Not Responding) refers to the situation where an application fails to respond to user operations for an extended period. When this occurs, the system will display a pop-up window, allowing us to choose whether to forcefully close the program. As shown in Figure 6-1, it is a common ANR pop-up window.
 
-![Figure 6-1 ANR pop-up window](https://raw.githubusercontent.com/helsonzhao/THE_ART_OF_ANDROID_PERFORMANCE_OPTIMIZATION/main/assets/chapter6_img_1.png)
+<img src="https://raw.githubusercontent.com/helsonzhao/THE_ART_OF_ANDROID_PERFORMANCE_OPTIMIZATION/main/assets/chapter6_img_1.png" alt="Figure 6-1 ANR pop-up window" width="350" style="margin:auto;"/>
 
 ## 6.2.1 Types of ANR
 

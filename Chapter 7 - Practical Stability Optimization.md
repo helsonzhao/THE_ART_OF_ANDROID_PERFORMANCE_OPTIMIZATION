@@ -81,7 +81,7 @@ In the above signal\_handler exception handling function, the saveStack method i
 
 In the previous chapter, we have learned the function of the SP (Stack Pointer) register, which is used to point to the stack top address of the current function and is used to store local variables, intermediate results, function parameters, return addresses, etc. The FP (Frame Pointer) register, on the contrary to the SP register, points to the starting position of the stack frame of the current function. The value of the FP register remains unchanged during the execution of this function, while the SP register changes as the stack expands and contracts during the function execution. The relationship between these two registers is shown in Figure 7-1. In Chapter 3, we learned that the stack space is allocated from high addresses to low addresses, so the FP register points to the high address of the stack, and the SP points to the low address of the stack.&#x20;
 
-![Figure 7-1 Schematic diagram of FP and SP](https://raw.githubusercontent.com/helsonzhao/THE_ART_OF_ANDROID_PERFORMANCE_OPTIMIZATION/main/assets/chapter7_img_1.png)
+<img src="https://raw.githubusercontent.com/helsonzhao/THE_ART_OF_ANDROID_PERFORMANCE_OPTIMIZATION/main/assets/chapter7_img_1.png" alt="Figure 7-1 Schematic diagram of FP and SP" width="350" style="margin:auto;"/>
 
 
 
@@ -103,7 +103,7 @@ The explanations for these three instructions are as follows:&#x20;
 
 Therefore, in a scenario where multiple function calls occur, such as function A calling function B, and function B calling function C, its stack frame model is shown in Figure 7-3.
 
-![Figure 7-3 FP and SP model diagrams](https://raw.githubusercontent.com/helsonzhao/THE_ART_OF_ANDROID_PERFORMANCE_OPTIMIZATION/main/assets/chapter7_img_3.png)
+<img src="https://raw.githubusercontent.com/helsonzhao/THE_ART_OF_ANDROID_PERFORMANCE_OPTIMIZATION/main/assets/chapter7_img_3.png" alt="Figure 7-3 FP and SP model diagrams" width="350" style="margin:auto;"/>
 
 
 
