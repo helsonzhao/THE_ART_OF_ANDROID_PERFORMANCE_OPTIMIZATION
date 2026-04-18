@@ -49,11 +49,11 @@ Rows 1 to 9 in the data represent the cumulative CPU time consumed under differe
 
 * 3196237 (idle): Idle state, indicating the time when the CPU is in an idle state
 
-* 16160 (io\_wait): IO wait time, the time the CPU waits for I/O operations to complete.
+* 16160 (io_wait): IO wait time, the time the CPU waits for I/O operations to complete.
 
 * 18733 (irp): Time to handle hard interrupts, the time taken by the CPU to handle hardware interrupts.
 
-* 11734 (soft\_irp): Time to handle soft interrupts, which is the time for the CPU to handle software interrupts.
+* 11734 (soft_irp): Time to handle soft interrupts, which is the time for the CPU to handle software interrupts.
 
 * 0 0 0: Invalid field
 
@@ -67,9 +67,9 @@ Starting from the intr line, the meaning of the data represented by each line is
 
 * processes: The number of processes created after the system starts
 
-* procs\_running: The number of processes currently in the running state
+* procs_running: The number of processes currently in the running state
 
-* procs\_blocked: The number of processes currently waiting for IO
+* procs_blocked: The number of processes currently waiting for IO
 
 * softirq: Time spent by the CPU handling soft interrupts since system startup
 
@@ -114,7 +114,7 @@ This file contains only one line of data, but the number of data items in that l
 | Data Item Index | Data Content                      | Description                                                                                                         |
 | --------------- | --------------------------------- | ------------------------------------------------------------------------------------------------------------------- |
 | 1               | 19700                             | Process ID                                                                                                          |
-| 2               | (com.example.android\_perference) | Process Name                                                                                                        |
+| 2               | (com.example.android_perference) | Process Name                                                                                                        |
 | 3               | S                                 | The state of a process, represented by a single character, such as R (Running), S (Sleeping), T (Terminated), etc.  |
 | 4               | 1271                              | Parent Process ID                                                                                                   |
 | 5               | 1271                              | Process Group ID                                                                                                    |
@@ -210,7 +210,7 @@ struct tms {
 }
 ```
 
-The times function places the returned data in the tms structure. Through the tms\_utime and tms\_stime parameters in the tms structure, we can know the CPU consumption time of the current process. The implementation code is as follows:&#x20;
+The times function places the returned data in the tms structure. Through the tms_utime and tms_stime parameters in the tms structure, we can know the CPU consumption time of the current process. The implementation code is as follows:&#x20;
 
 ```c++
 #include <sys/times.h>
@@ -224,7 +224,7 @@ float getCPUTimes(JNIEnv *env) {
 
 When calculating the CPU usage of a process, the CPU time consumed by the process within a unit time is the numerator, and the Total Cost of CPU time is the denominator. Here we obtain the CPU time consumed by the application through the times function, but we cannot obtain the Total Cost of CPU time. Since the system does not have a corresponding interface to directly obtain the Total Cost of CPU time, we still have to read and parse the stat file. Therefore, at this point, we can switch to another metric, using the CPU usage rate of the process to replace the CPU usage, and then make a judgment on whether it is idle.&#x20;
 
-CPU rate refers to the load level of CPU utilization within a certain time period, which can be calculated by the formula "CPU time consumed by the process within the time interval / (time interval × CPU clock tick frequency per unit time)". The denominator "time interval × CPU clock tick frequency per unit time" in the formula represents the theoretically full load time of the CPU during this time interval. We can obtain the CPU clock tick frequency per second through the sysconf(\_SC\_CLK\_TCK) function, and the code is as follows.
+CPU rate refers to the load level of CPU utilization within a certain time period, which can be calculated by the formula "CPU time consumed by the process within the time interval / (time interval × CPU clock tick frequency per unit time)". The denominator "time interval × CPU clock tick frequency per unit time" in the formula represents the theoretically full load time of the CPU during this time interval. We can obtain the CPU clock tick frequency per second through the sysconf(_SC_CLK_TCK) function, and the code is as follows.
 
 ```c++
 #include <bits/sysconf.h>
@@ -234,7 +234,7 @@ int getCpuTick(JNIEnv *env) {
 }
 ```
 
-The CPU time consumed by the process obtained in the Times function is in seconds, and the value returned by the sysconf(\_SC\_CLK\_TCK) function is also the CPU clock frequency per second. Therefore, when calculating the CPU usage rate of the process, it is also necessary to perform the calculation with seconds as the frequency. The implementation of the solution is as follows.&#x20;
+The CPU time consumed by the process obtained in the Times function is in seconds, and the value returned by the sysconf(_SC_CLK_TCK) function is also the CPU clock frequency per second. Therefore, when calculating the CPU usage rate of the process, it is also necessary to perform the calculation with seconds as the frequency. The implementation of the solution is as follows.&#x20;
 
 ```java
 float beforeAppTime  =  0;
@@ -312,8 +312,8 @@ Common categories configurations include the following.
 | mem            | Capture memory-related data, including events such as system and application memory usage, allocation, recycling, and compression.                    |
 | power          | Capture power-related data, including information such as battery charge level, voltage, temperature, and charging status                             |
 | aidl           | Capture AIDL-related data, including events such as calls, returns, and exceptions in inter-process communication                                     |
-| binder\_driver | Capture data related to the Binder driver, including events such as the sending, receiving, processing, and completion of Binder transactions         |
-| binder\_lock   | Capture data related to Binder locks, including events such as Binder lock contention, acquisition, and release                                       |
+| binder_driver | Capture data related to the Binder driver, including events such as the sending, receiving, processing, and completion of Binder transactions         |
+| binder_lock   | Capture data related to Binder locks, including events such as Binder lock contention, acquisition, and release                                       |
 | app            | Capture application-related data, including application-defined trace events, recorded by the Trace API.                                              |
 
 After getting familiar with the use of the command line, enter the following command to start Trace capture, then operate the scenario in the sample program that will generate lock waits, and you can successfully capture the Trace during this 20-second operation period.&#x20;
@@ -324,7 +324,7 @@ perfetto -o /data/misc/perfetto-traces/trace_file.perfetto-trace -t 20s sched fr
 
 ### 2. Trace File Analysis
 
-Once the Trace file has been captured, analysis can begin. Pefetto provides a visualization website specifically designed to parse the Trace files we capture. After opening the Pefetto website, simply import the captured "trace\_file.perfetto-trace" file.&#x20;
+Once the Trace file has been captured, analysis can begin. Pefetto provides a visualization website specifically designed to parse the Trace files we capture. After opening the Pefetto website, simply import the captured "trace_file.perfetto-trace" file.&#x20;
 
 In the parsed data, directly locate the main thread of the sample program. As shown in Figure 5-4, it can be intuitively seen that the main thread is in a state of waiting for a lock, and through Details, it can be seen that the waiting time has already reached 12 seconds, and the lock on line 29980 of StabilityExampleActivity.java:27 is held by the thread with thread ID 29980.&#x20;
 
@@ -559,7 +559,7 @@ Currently, the CPUs of mobile phones are all multi-core. For example, the Snapdr
 
 ## 5.3.1 Thread Binding Core Function
 
-The Linux system provides  pthread\_setaffinity\_np  and  sched\_setaffinity  these two functions to bind a specified thread to a specified core. However, in the Android system, the use of the pthread\_setaffinity\_np function is blocked, so we can only perform core binding operations through the sched\_setaffinity function. The function is as follows:&#x20;
+The Linux system provides  pthread_setaffinity_np  and  sched_setaffinity  these two functions to bind a specified thread to a specified core. However, in the Android system, the use of the pthread_setaffinity_np function is blocked, so we can only perform core binding operations through the sched_setaffinity function. The function is as follows:&#x20;
 
 ```c++
 #include <sched.h>
@@ -607,7 +607,7 @@ affected_cpus     cpuinfo_max_freq  cpuinfo_transition_latency  scaling_availabl
 cpuinfo_cur_freq  cpuinfo_min_freq  related_cpus                scaling_available_governors    scaling_cur_freq           scaling_governor  scaling_min_freq  schedutil
 ```
 
-The cpuinfo\_max\_freq under this file is the clock cycle frequency of the current CPU core. Below are the clock cycle frequencies of each core of my test device, Piexl3 with the Snapdragon 845 chip. It can be seen that cores 4, 5, 6, and 7 are all big cores with a clock frequency of 2.8 GHz, while the other small cores only have a frequency of 1.7 GHz.&#x20;
+The cpuinfo_max_freq under this file is the clock cycle frequency of the current CPU core. Below are the clock cycle frequencies of each core of my test device, Piexl3 with the Snapdragon 845 chip. It can be seen that cores 4, 5, 6, and 7 are all big cores with a clock frequency of 2.8 GHz, while the other small cores only have a frequency of 1.7 GHz.&#x20;
 
 ```c++
 /sys/devices/system/cpu $ cat cpu0/cpufreq/cpuinfo_max_freq
@@ -628,7 +628,7 @@ The cpuinfo\_max\_freq under this file is the clock cycle frequency of the curre
 2803200
 ```
 
-Therefore, in the code implementation, you only need to traverse the CPU nodes under the `/sys/devices/system/cpu/directory`, and then read the value of the cpuinfo\_max\_freq file to find the big core. The following is the detailed code implementation:&#x20;
+Therefore, in the code implementation, you only need to traverse the CPU nodes under the `/sys/devices/system/cpu/directory`, and then read the value of the cpuinfo_max_freq file to find the big core. The following is the detailed code implementation:&#x20;
 
 1. Count how many cores the CPU of this device has.&#x20;
 
@@ -685,7 +685,7 @@ int getMaxFreqCPU() {
 }
 ```
 
-At this point, the sequence of the big core has been identified, and then sched\_setaffinity can be called to bind the core. In addition to the main thread, other core threads, such as the rendering thread, can also be bound to the big core according to business requirements. After we bind the main thread to the big core through the above logic, we can verify which core the target thread is running on by capturing Trace to Pefetto, thereby confirming whether the binding is successful.
+At this point, the sequence of the big core has been identified, and then sched_setaffinity can be called to bind the core. In addition to the main thread, other core threads, such as the rendering thread, can also be bound to the big core according to business requirements. After we bind the main thread to the big core through the above logic, we can verify which core the target thread is running on by capturing Trace to Pefetto, thereby confirming whether the binding is successful.
 
 # 5.4 GC Inhibition
 
@@ -777,7 +777,7 @@ static void VMRuntime_runHeapTasks(JNIEnv* env, jobject) {
 }
 ```
 
-The RunAllTasks function is located in task\_processor.cc, and this method actually just continuously loops to call the GetTask function to obtain HeapTask and execute it.
+The RunAllTasks function is located in task_processor.cc, and this method actually just continuously loops to call the GetTask function to obtain HeapTask and execute it.
 
 ```c++
 void TaskProcessor::RunAllTasks(Thread* self) {
@@ -835,7 +835,7 @@ For the system, the first solution is very simple because the system can directl
 
 ### 2. HeapTask Analysis
 
-To ensure the smooth implementation of the plan, it is necessary to continue analyzing what HeapTask does. This object is located in the task\_processor.h file, and the source code is as follows
+To ensure the smooth implementation of the plan, it is necessary to continue analyzing what HeapTask does. This object is located in the task_processor.h file, and the source code is as follows
 
 ```c++
 class HeapTask : public SelfDeletingTask {
@@ -932,7 +932,7 @@ inline bool Heap::ShouldConcurrentGCForJava(size_t new_num_bytes_allocated) {
 }
 ```
 
-From the source code, it can be seen that if it is determined to be a concurrent GC, or when the heap memory reaches the concurrent\_start\_bytes\_ threshold, the RequestConcurrentGCAndSaveObject method will be called. The source code is as follows:
+From the source code, it can be seen that if it is determined to be a concurrent GC, or when the heap memory reaches the concurrent_start_bytes_ threshold, the RequestConcurrentGCAndSaveObject method will be called. The source code is as follows:
 
 ```c++
 void Heap::RequestConcurrentGCAndSaveObject(Thread* self,
@@ -980,7 +980,7 @@ class Heap::ConcurrentGCTask : public HeapTask {
 };
 ```
 
-In this method, a ConcurrentGCTask will be created, and the AddTask method of the task\_processor\_ object will be called to add it to the tasks collection. Immediately afterwards, the Run function of ConcurrentGCTask will be executed, triggering concurrent GC. The mechanism and principle of GC will not be elaborated on here. Let's continue to look at the implementation scheme of GC suppression.&#x20;
+In this method, a ConcurrentGCTask will be created, and the AddTask method of the task_processor_ object will be called to add it to the tasks collection. Immediately afterwards, the Run function of ConcurrentGCTask will be executed, triggering concurrent GC. The mechanism and principle of GC will not be elaborated on here. Let's continue to look at the implementation scheme of GC suppression.&#x20;
 
 ## 5.4.2 Scheme for Suppressing GC Execution
 
@@ -1044,7 +1044,7 @@ void hook(void *target, void *new_func) {
 }
 ```
 
-Through the above code, we can achieve the goal of jumping to our custom function new\_func when the Run method of ConcurrentGCTask is executed. At this point, we can sleep for 2 seconds in the custom function new\_func, then restore the instructions of the original function and continue to execute the logic of the original function. Since the Run function of ConcurrentGCTask has a Thread parameter, we also need to pass the Thread\* parameter when executing the original method. The code implementation is as follows:&#x20;
+Through the above code, we can achieve the goal of jumping to our custom function new_func when the Run method of ConcurrentGCTask is executed. At this point, we can sleep for 2 seconds in the custom function new_func, then restore the instructions of the original function and continue to execute the logic of the original function. Since the Run function of ConcurrentGCTask has a Thread parameter, we also need to pass the Thread\* parameter when executing the original method. The code implementation is as follows:&#x20;
 
 ```c++
 void new_func(){
@@ -1074,7 +1074,7 @@ Through the above process, we have completed the Hook operation on the Run funct
 
 Previously, I mentioned the Run method of the ConcurrentGCTask object, whose full name is `art::gc::Heap::ConcurrentGCTask::Run(art::Thread*)`. The name of this method in the assembly code is `_ZN3art2gc4Heap16ConcurrentGCTask3RunEPNS_6ThreadE`, and this name is the symbol name of the Run function. In the previous chapter, we have learned the generation rules of symbols, so at this point, we can understand this symbol. Its generation rules are as follows:
 
-* \_ZN is a prefix indicating that this is a C++ function symbol.
+* _ZN is a prefix indicating that this is a C++ function symbol.
 
 * 3art indicates that the name of the first namespace is art, and 3 is the length of the name.
 
@@ -1086,7 +1086,7 @@ Previously, I mentioned the Run method of the ConcurrentGCTask object, whose ful
 
 * 3Run indicates that the name of the function is Run, and 3 is the length of the name.
 
-* EPNS\_6ThreadE indicates that the parameter of the function is a pointer to the art::Thread class, where E is the end marker of the parameter list, P is the pointer marker, NS\_6Thread represents the nested name of the art::Thread class, N is the start marker of the nested name, S\_ indicates repeating the previously appeared name, 6Thread indicates that the class name is Thread, and 6 is the length of the name.
+* EPNS_6ThreadE indicates that the parameter of the function is a pointer to the art::Thread class, where E is the end marker of the parameter list, P is the pointer marker, NS_6Thread represents the nested name of the art::Thread class, N is the start marker of the nested name, S_ indicates repeating the previously appeared name, 6Thread indicates that the class name is Thread, and 6 is the length of the name.
 
 According to this rule, we can know the symbol corresponding to the `art::gc::Heap::ConcurrentGCTask::Run(art::Thread*)` function, but we cannot ensure that this symbol is retained in the libart.so library. In the libart.so library file, many methods have symbols. The reason for retaining these symbols is mainly for debugging or exception location. Through the symbols, we can find the corresponding function address. However, there are also many methods that do not have symbols. The reason why we do not adopt the solution of adding our custom task to the TaskProcessor to suppress GC, as mentioned earlier, is mainly because the `add` method of the TaskProcessor object does not have a symbol, so we cannot obtain and execute this function address.
 
@@ -1132,17 +1132,17 @@ In the above code, the file handle of libart.so is obtained through the dlopen f
 
 However, we can use some unconventional technical means to break through this limitation. Since these technologies are relatively complex, I will introduce the principle of the technology here. Readers only need to have a general understanding of the process and principle, and are not required to fully master it.
 
-The dlopen function is located in the libdl.cpp file of the bionic library (libc.so), and the function code is shown in Figure 5-10. Among them, the \_\_builtin\_return\_address(0) method returns the address of the calling function, which is the address of caller\_addr. In the subsequent process, it will be determined whether caller\_addr is from a system library or a non-system library address. If it is a non-system library address, that is, the address of a user program, an exception will be thrown.&#x20;
+The dlopen function is located in the libdl.cpp file of the bionic library (libc.so), and the function code is shown in Figure 5-10. Among them, the __builtin_return_address(0) method returns the address of the calling function, which is the address of caller_addr. In the subsequent process, it will be determined whether caller_addr is from a system library or a non-system library address. If it is a non-system library address, that is, the address of a user program, an exception will be thrown.&#x20;
 
 ![Figure 5-10 source code fo dlopen function](https://raw.githubusercontent.com/helsonzhao/THE_ART_OF_ANDROID_PERFORMANCE_OPTIMIZATION/main/assets/chapter5_img_10.png)
 
 The value returned by the `__builtin_ereturn_address(0)` function is actually the value of the LR register (Link Register), which is used to store the return address when a function is called, so that the function can return to the calling point after execution. If we can modify the value of the LR register to the address of the system library, when the dlopen function is called, the system will think that the caller is a system caller, and thus the dlopen function can be used normally.&#x20;
 
-However, bypassing the system's restrictions on dlopen by modifying the value of the LR register is complex and can easily lead to system crashes due to exceptions. Therefore, we can use online open-source libraries to bypass the restrictions. Here I introduce [ndk\_dlopen](https://github.com/Rprop/ndk_dlopen), an open-source library, to implement the capabilities of dlopen and dlsym. The implementation principle of this open-source library is similar. By reading the source code of this library, as shown in Figure 5-11, it can be seen that it takes (\*env)->FatalError to replace the address of the LR register, thereby achieving the purpose of bypassing system checks.&#x20;
+However, bypassing the system's restrictions on dlopen by modifying the value of the LR register is complex and can easily lead to system crashes due to exceptions. Therefore, we can use online open-source libraries to bypass the restrictions. Here I introduce [ndk_dlopen](https://github.com/Rprop/ndk_dlopen), an open-source library, to implement the capabilities of dlopen and dlsym. The implementation principle of this open-source library is similar. By reading the source code of this library, as shown in Figure 5-11, it can be seen that it takes (\*env)->FatalError to replace the address of the LR register, thereby achieving the purpose of bypassing system checks.&#x20;
 
-![Figure 5-11 ndk\_dlopen open source library part of the code](https://raw.githubusercontent.com/helsonzhao/THE_ART_OF_ANDROID_PERFORMANCE_OPTIMIZATION/main/assets/chapter5_img_11.png)
+![Figure 5-11 ndk_dlopen open source library part of the code](https://raw.githubusercontent.com/helsonzhao/THE_ART_OF_ANDROID_PERFORMANCE_OPTIMIZATION/main/assets/chapter5_img_11.png)
 
-&#x20;ndk\_dlopen open source tool is also very easy to use, and the usage code is as follows:
+&#x20;ndk_dlopen open source tool is also very easy to use, and the usage code is as follows:
 
 ```c++
 // Initialize ndk_dlopen
@@ -1166,7 +1166,7 @@ Besides the solution introduced here , there are many other solutions to suppres
 
 In the above explanation, the implementation of Inline Hook was presented using the ARM 32 platform as an example. In actual online usage, we need to be compatible with multiple platforms such as ARM32, ARM64, X64, and x32, and also need to handle exceptions and fallback properly, all of which involve a significant amount of work. Therefore, I suggest that when using it in a real environment, try to choose a stable open-source library. There are many open-source frameworks for Inline Hook, and the one I uses most frequently is [ShadowHook](https://github.com/bytedance/android-inline-hook), an Inline Hook framework open-sourced by ByteDance, which has been tested in numerous online projects and is therefore relatively stable.&#x20;
 
-The detailed usage will not be introduced here, as it has been explained in great detail in the project's documentation. Readers can refer to it themselves. After importing the ShadowHook library into the project, only one shadowhook\_hook\_sym\_name method is needed to complete the Hook operation on the ConcurrentGCTask::Run function. The code is as follows.&#x20;
+The detailed usage will not be introduced here, as it has been explained in great detail in the project's documentation. Readers can refer to it themselves. After importing the ShadowHook library into the project, only one shadowhook_hook_sym_name method is needed to complete the Hook operation on the ConcurrentGCTask::Run function. The code is as follows.&#x20;
 
 ```c
 shadowhook_hook_sym_name("libart.so",
@@ -1175,7 +1175,7 @@ shadowhook_hook_sym_name("libart.so",
                         nullptr);
 ```
 
-After sleeping in our custom Hook function, we can complete the call to the original function by executing the SHADOWHOOK\_CALL\_PREV method provided by ShadowHook. The code implementation is as follows.
+After sleeping in our custom Hook function, we can complete the call to the original function by executing the SHADOWHOOK_CALL_PREV method provided by ShadowHook. The code implementation is as follows.
 
 ```c
 void newFunc(Thread* self){
@@ -1361,7 +1361,7 @@ brew install autoconf automake libtool python3
 brew install boost jsoncpp
 ```
 
-Then open the config file under the config directory of Redex, add the InterDexPass field in the configuration file to enable dex class rearrangement optimization, and add the coldstart\_classes field to specify the directory for the order of class files.&#x20;
+Then open the config file under the config directory of Redex, add the InterDexPass field in the configuration file to enable dex class rearrangement optimization, and add the coldstart_classes field to specify the directory for the order of class files.&#x20;
 
 ```json
 //open redex config
@@ -1398,7 +1398,7 @@ autoreconf -ivf && ./configure && make
 sudo make install
 ```
 
-Next, we need to output the classes used during the startup process and their order to the "app\_list\_of\_classes.txt" file. We can obtain the list of startup class loading order by following these steps:
+Next, we need to output the classes used during the startup process and their order to the "app_list_of_classes.txt" file. We can obtain the list of startup class loading order by following these steps:
 
 1\) Start the application and obtain the application's pid via the ps command
 
@@ -1412,7 +1412,7 @@ adb shell ps | grep app_packageName
 adb shell am dumpheap pid /data/local/tmp/SOMEDUMP.hprof
 ```
 
-3\) Analyze the captured memory snapshot using redex scripts and output it to the "app\_list\_of\_classes.txt" file specified by coldstart\_classes
+3\) Analyze the captured memory snapshot using redex scripts and output it to the "app_list_of_classes.txt" file specified by coldstart_classes
 
 ```shell
 # Pull the memory snapshot file to the local computer
@@ -1448,7 +1448,7 @@ u0_a45    16725 16632   2401604 60140    16    -4    0     0    ffffffff 0000000
 ……
 ```
 
-In Android, only some underlying core processes are real-time processes, such as audio and video service processes, while most processes are ordinary processes. We cannot adjust ordinary processes to real-time processes, nor can we adjust real-time processes to ordinary processes; only the operating system has this privilege. However, there is an exception: on a rooted phone, by modifying the sys.use\_fifo\_ui field in the build.prop file under the /system directory to 1, the main thread and rendering thread of an application can be adjusted to real-time processes. However, this requires a rooted device to operate, and on normal devices, this value is always 0, so this method is not universal.&#x20;
+In Android, only some underlying core processes are real-time processes, such as audio and video service processes, while most processes are ordinary processes. We cannot adjust ordinary processes to real-time processes, nor can we adjust real-time processes to ordinary processes; only the operating system has this privilege. However, there is an exception: on a rooted phone, by modifying the sys.use_fifo_ui field in the build.prop file under the /system directory to 1, the main thread and rendering thread of an application can be adjusted to real-time processes. However, this requires a rooted device to operate, and on normal devices, this value is always 0, so this method is not universal.&#x20;
 
 ## 5.7.1 Methods of Adjusting Thread Priority
 
@@ -1472,16 +1472,16 @@ Among them, the input parameter tid is the thread ID, which can be omitted and w
 
 | **Priority Definition**                   | **Nice value&#x20;** | **Usage Scenarios**                         |
 | ----------------------------------------- | -------------------- | ------------------------------------------- |
-| Process.THREAD\_PRIORITY\_DEFAULT         | 0                    | Default Priority                            |
-| Process.THREAD\_PRIORITY\_LOWEST          | 19                   | Lowest Priority                             |
-| Process.THREAD\_PRIORITY\_BACKGROUND      | 10                   | Recommended priority for background threads |
-| Process.THREAD\_PRIORITY\_LESS\_FAVORABLE | 1                    | Slightly lower than default                 |
-| Process.THREAD\_PRIORITY\_MORE\_FAVORABLE | -1                   | Slightly higher than default                |
-| Process.THREAD\_PRIORITY\_FOREGROUND      | -2                   | Foreground Thread Priority                  |
-| Process.THREAD\_PRIORITY\_DISPLAY         | -4                   | Display thread recommended priority         |
-| Process.THREAD\_PRIORITY\_URGENT\_DISPLAY | -8                   | Displays the highest level of the thread    |
-| Process.THREAD\_PRIORITY\_AUDIO           | -16                  | Audio thread recommended priority           |
-| Process.THREAD\_PRIORITY\_URGENT\_AUDIO   | -19                  | Audio thread highest priority               |
+| Process.THREAD_PRIORITY_DEFAULT         | 0                    | Default Priority                            |
+| Process.THREAD_PRIORITY_LOWEST          | 19                   | Lowest Priority                             |
+| Process.THREAD_PRIORITY_BACKGROUND      | 10                   | Recommended priority for background threads |
+| Process.THREAD_PRIORITY_LESS_FAVORABLE | 1                    | Slightly lower than default                 |
+| Process.THREAD_PRIORITY_MORE_FAVORABLE | -1                   | Slightly higher than default                |
+| Process.THREAD_PRIORITY_FOREGROUND      | -2                   | Foreground Thread Priority                  |
+| Process.THREAD_PRIORITY_DISPLAY         | -4                   | Display thread recommended priority         |
+| Process.THREAD_PRIORITY_URGENT_DISPLAY | -8                   | Displays the highest level of the thread    |
+| Process.THREAD_PRIORITY_AUDIO           | -16                  | Audio thread recommended priority           |
+| Process.THREAD_PRIORITY_URGENT_AUDIO   | -19                  | Audio thread highest priority               |
 
 Before any adjustment, the Nice value of the main thread defaults to 0, and the default Nice value of the rendering thread is -4. Therefore, we can further increase the priority of the main thread and the rendering thread to improve the responsiveness of these two threads.
 
@@ -1497,9 +1497,9 @@ The input parameter priority of the above interface is not the Nice value, but r
 
 | Priority Definition      | **Nice value&#x20;** |
 | ------------------------ | -------------------- |
-| Thread.MAX\_PRIORITY（10） | -8                   |
-| Thread.MIN\_PRIORITY（0）  | 19                   |
-| Thread.NORM\_PRIORITY（5） | 0                    |
+| Thread.MAX_PRIORITY（10） | -8                   |
+| Thread.MIN_PRIORITY（0）  | 19                   |
+| Thread.NORM_PRIORITY（5） | 0                    |
 
 ## 5.7.2 Threads that need priority adjustment
 
@@ -1839,7 +1839,7 @@ public class CoreThreadPoolExecutor extends ThreadPoolExecutor {
 }
 ```
 
-Next, we will implement the CPU thread pool, which can be named CpuThreadPoolExecutor or FixedThreadPoolExecutor. Both class names can reflect the characteristics of the thread pool. Here, I use CpuThreadPoolExecutor as the name. The object needs to provide a static method getThreadPool to create or obtain the CPU thread pool. For the CPU thread pool, we can set its priority higher, such as the Process.THREAD\_PRIORITY\_DISPLAY level. The implementation code for the solution is as follows.
+Next, we will implement the CPU thread pool, which can be named CpuThreadPoolExecutor or FixedThreadPoolExecutor. Both class names can reflect the characteristics of the thread pool. Here, I use CpuThreadPoolExecutor as the name. The object needs to provide a static method getThreadPool to create or obtain the CPU thread pool. For the CPU thread pool, we can set its priority higher, such as the Process.THREAD_PRIORITY_DISPLAY level. The implementation code for the solution is as follows.
 
 ```java
 class CPUThreadPoolExecutor extends CoreThreadPoolExecutor {
@@ -1899,7 +1899,7 @@ When the system is performing IO operations, it will be handed over to DMA (Dire
 
   The fallback strategy for the IO thread pool can be the same as that for the CPU thread pool: report the exception, and then execute the fallback task using a fallback thread.&#x20;
 
-Based on the above input parameter configuration, the code for creating the IO thread pool is as follows. The priority of IO threads is slightly lower than that of CPU threads, so it can be set to the THREAD\_PRIORITY\_DISPLAY level.
+Based on the above input parameter configuration, the code for creating the IO thread pool is as follows. The priority of IO threads is slightly lower than that of CPU threads, so it can be set to the THREAD_PRIORITY_DISPLAY level.
 
 ```java
 class IOThreadPoolExecutor extends CoreThreadPoolExecutor {
@@ -2128,5 +2128,5 @@ private static void checkLongRunTask(HashMap<String, Long> taskMap,
 }
 ```
 
-| Source code addresses appearing in this chapter: <br />Daemons: <br /><https://cs.android.com/android/platform/superproject/+/android-14.0.0\_r9:libcore/libart/src/main/java/java/lang/Daemons.java><br />task\_processor.h:<br /><https://cs.android.com/android/platform/superproject/+/android-14.0.0\_r9:art/runtime/gc/task\_processor.h><br />task\_processor.cc:<br /><https://cs.android.com/android/platform/superproject/+/android-14.0.0\_r9:art/runtime/gc/task\_processor.cc><br />ndk\_dlopen: <https://github.com/Rprop/ndk\_dlopen><br />redex: <https://github.com/facebook/redex><br />libdl.cpp：<br /><https://cs.android.com/android/platform/superproject/+/android-14.0.0\_r9:bionic/libdl/libdl.cpp><br />ShadowHook：<https://github.com/bytedance/android-inline-hook><br />ThreadPoolExecutor.java: <br /><https://cs.android.com/android/platform/superproject/+/android-14.0.0\_r9:libcore/ojluni/src/main/java/java/util/concurrent/ThreadPoolExecutor.java> |
+| Source code addresses appearing in this chapter: <br />Daemons: <br /><https://cs.android.com/android/platform/superproject/+/android-14.0.0_r9:libcore/libart/src/main/java/java/lang/Daemons.java><br />task_processor.h:<br /><https://cs.android.com/android/platform/superproject/+/android-14.0.0_r9:art/runtime/gc/task_processor.h><br />task_processor.cc:<br /><https://cs.android.com/android/platform/superproject/+/android-14.0.0_r9:art/runtime/gc/task_processor.cc><br />ndk_dlopen: <https://github.com/Rprop/ndk_dlopen><br />redex: <https://github.com/facebook/redex><br />libdl.cpp：<br /><https://cs.android.com/android/platform/superproject/+/android-14.0.0_r9:bionic/libdl/libdl.cpp><br />ShadowHook：<https://github.com/bytedance/android-inline-hook><br />ThreadPoolExecutor.java: <br /><https://cs.android.com/android/platform/superproject/+/android-14.0.0_r9:libcore/ojluni/src/main/java/java/util/concurrent/ThreadPoolExecutor.java> |
 | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |

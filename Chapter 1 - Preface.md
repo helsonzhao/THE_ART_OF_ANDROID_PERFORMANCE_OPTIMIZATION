@@ -152,7 +152,7 @@ The content of this book includes comprehensive Performance optimization topics 
 
 The knowledge points related to the Android system in this book are mainly explained based on Android 14 However, when performing performance optimization, considering compatibility, we often need to base it on each system version. Therefore, this book will also cover the explanation of source code for system versions other than Android 14. For the cases explained through sample programs in this book, source code will mostly be provided, and details of the source code can be found in the following link.&#x20;
 
-> <https://github.com/helsonzhao/android\_performance>
+> <https://github.com/helsonzhao/android_performance>
 
 The content of this book is the my personal thoughts and summaries based on past work experience and excellent industry practices. However, technology is boundless, and individual capabilities are relatively limited. Therefore, errors are inevitable in the text, and we hope readers will kindly forgive and offer their advice.&#x20;
 

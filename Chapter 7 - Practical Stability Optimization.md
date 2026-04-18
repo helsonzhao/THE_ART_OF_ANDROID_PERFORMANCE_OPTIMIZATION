@@ -32,15 +32,15 @@ static void setup_signal_handler() {
 }
 ```
 
-The signal\_handler function in the above code is our custom callback function after exception capture, and the prototype of this callback function is the function pointer sa\_sigaction.&#x20;
+The signal_handler function in the above code is our custom callback function after exception capture, and the prototype of this callback function is the function pointer sa_sigaction.&#x20;
 
 ```c++
 void (*sa_sigaction)(int, siginfo_t *, void *);
 ```
 
-It can be seen that this callback function has three callback data. The first callback data is of type int, representing the received semaphore. The second callback data is a pointer to a siginfo\_t structure, which contains additional information about the signal, such as the sender's process ID. The third callback data is a pointer to the structure of the current context environment. In the Android Native layer, the context structure is represented by ucontext\_t, through which data such as register status and stack information can be obtained.&#x20;
+It can be seen that this callback function has three callback data. The first callback data is of type int, representing the received semaphore. The second callback data is a pointer to a siginfo_t structure, which contains additional information about the signal, such as the sender's process ID. The third callback data is a pointer to the structure of the current context environment. In the Android Native layer, the context structure is represented by ucontext_t, through which data such as register status and stack information can be obtained.&#x20;
 
-In the custom signal\_handler function, it is mainly used to capture key logs. However, considering the success rate of reporting, generally, data reporting is not immediately performed after capturing the logs here. Instead, the logs are recorded locally and reported after the program is restarted. After the logs are successfully captured, the original processing function will be executed to ensure the integrity of the call chain. The code implementation is as follows:&#x20;
+In the custom signal_handler function, it is mainly used to capture key logs. However, considering the success rate of reporting, generally, data reporting is not immediately performed after capturing the logs here. Instead, the logs are recorded locally and reported after the program is restarted. After the logs are successfully captured, the original processing function will be executed to ensure the integrity of the call chain. The code implementation is as follows:&#x20;
 
 ```c++
 static void signal_handler(int sig, siginfo_t *info, void *context) {
@@ -53,11 +53,11 @@ static void signal_handler(int sig, siginfo_t *info, void *context) {
 }
 ```
 
-In the exception handling function, two main things are done: one is to call saveStack to obtain and store crash logs, and the other is to execute the original signal handling functions stored in the old\_sa array to avoid overwriting or ignoring the signal handling logic of other modules.&#x20;
+In the exception handling function, two main things are done: one is to call saveStack to obtain and store crash logs, and the other is to execute the original signal handling functions stored in the old_sa array to avoid overwriting or ignoring the signal handling logic of other modules.&#x20;
 
 As seen from the code implementation, the process of capturing the exception signal of a Native Crash is not complicated, but to make the solution more robust, a new stack space is usually created for the signal handling function to use. If a new stack space is not created, the handling function will execute on the original default stack. If the default stack space is insufficient at this time, such as when an OOM exception due to stack overflow occurs, the handling function will not be able to execute properly.&#x20;
 
-A new stack space can be set using the sigaltstack function, thereby resolving this issue. The code implementation for creating a new stack space is as follows: in the code, a space of size SIGSTKSZ is allocated via mmap, where SIGSTKSZ is a macro definition with a size of 8KB, and then passed to the sigaltstack function. Before capturing signals using the sigaction function, after creating a new stack space with the following logic, the signal\_handler signal handling function will automatically execute within this new 8KB stack space.&#x20;
+A new stack space can be set using the sigaltstack function, thereby resolving this issue. The code implementation for creating a new stack space is as follows: in the code, a space of size SIGSTKSZ is allocated via mmap, where SIGSTKSZ is a macro definition with a size of 8KB, and then passed to the sigaltstack function. Before capturing signals using the sigaction function, after creating a new stack space with the following logic, the signal_handler signal handling function will automatically execute within this new 8KB stack space.&#x20;
 
 ```c++
 static void setup_alternate_stack() {
@@ -75,7 +75,7 @@ static void setup_alternate_stack() {
 
 ## 7.1.2 Obtain Native Stack
 
-In the above signal\_handler exception handling function, the saveStack method is called to obtain and store the Native stack. In Chapter 3, "Practical Memory Optimization", the solution of obtaining the Native stack through the unwind library has already been explained. Although this solution has better compatibility, the retrieval speed is relatively slow. When an exception occurs, we need to capture the stack as quickly as possible before the process is terminated. Therefore, I introduce a faster way to obtain the Native stack here: obtaining the stack via the FP (Frame Pointer) register.&#x20;
+In the above signal_handler exception handling function, the saveStack method is called to obtain and store the Native stack. In Chapter 3, "Practical Memory Optimization", the solution of obtaining the Native stack through the unwind library has already been explained. Although this solution has better compatibility, the retrieval speed is relatively slow. When an exception occurs, we need to capture the stack as quickly as possible before the process is terminated. Therefore, I introduce a faster way to obtain the Native stack here: obtaining the stack via the FP (Frame Pointer) register.&#x20;
 
 ### 1. FP Register
 
@@ -105,7 +105,7 @@ Therefore, in a scenario where multiple function calls occur, such as function A
 
 From the model diagram, it can be found that by using the value of the next address of the FP register, the data of the LR register can be obtained, which is the return address of the previous function. By using the value of the address two positions after the FP register, the FP address of the previous function can be obtained. Next, the LR and FP data stored in the stack of the previous function can be found in the same way, and thus the address of the function before the previous one and its stack bottom address are also known. This loop constitutes a stack traceback process.
 
-Following this line of thought, the code implementation of stack traceback is as follows. In the code, we obtain the FP and PC registers through the ucontext\_t context object. FP points to the bottom of the current stack frame, and the stack grows from high addresses to low addresses. Therefore, the addresses of FP - 1 and FP - 2 represent the return address of the current function and the FP address of the previous function respectively. We use a while loop to continuously obtain these two values until all stack frames have been traversed.
+Following this line of thought, the code implementation of stack traceback is as follows. In the code, we obtain the FP and PC registers through the ucontext_t context object. FP points to the bottom of the current stack frame, and the stack grows from high addresses to low addresses. Therefore, the addresses of FP - 1 and FP - 2 represent the return address of the current function and the FP address of the previous function respectively. We use a while loop to continuously obtain these two values until all stack frames have been traversed.
 
 ```java
 static void saveStack(void *secret) {
@@ -148,9 +148,9 @@ add_compile_options(-fno-omit-frame-pointer)
 
 ### 3. Register Data
 
-A complete Native stack log should also include register data, so we can also print out the register data. The uc\_mcontext structure of ucontext\_t contains information about all registers, as shown in Figure 7-4. Through "uc->uc\_mcontext.arm\_r0" to "uc->uc\_mcontext.arm\_r10", we can obtain information about all general-purpose registers. Through uc->uc\_mcontext.arm\_ip, uc->uc\_mcontext.arm\_sp, uc->uc\_mcontext.arm\_lr, and uc->uc\_mcontext.arm\_pc, we can obtain information about all special-purpose registers. After obtaining the addresses of these registers, we add them to the previously captured Native stack information, and this is a complete Native stack log.&#x20;
+A complete Native stack log should also include register data, so we can also print out the register data. The uc_mcontext structure of ucontext_t contains information about all registers, as shown in Figure 7-4. Through "uc->uc_mcontext.arm_r0" to "uc->uc_mcontext.arm_r10", we can obtain information about all general-purpose registers. Through uc->uc_mcontext.arm_ip, uc->uc_mcontext.arm_sp, uc->uc_mcontext.arm_lr, and uc->uc_mcontext.arm_pc, we can obtain information about all special-purpose registers. After obtaining the addresses of these registers, we add them to the previously captured Native stack information, and this is a complete Native stack log.&#x20;
 
-![Figure 7-4 Data in uc\_mcontext structure](https://raw.githubusercontent.com/helsonzhao/THE_ART_OF_ANDROID_PERFORMANCE_OPTIMIZATION/main/assets/chapter7_img_4.png)
+![Figure 7-4 Data in uc_mcontext structure](https://raw.githubusercontent.com/helsonzhao/THE_ART_OF_ANDROID_PERFORMANCE_OPTIMIZATION/main/assets/chapter7_img_4.png)
 
 ## 7.1.3 Use Open Source Libraries
 
@@ -172,7 +172,7 @@ First, compile on the Android platform, and clone the Breakpad source code to th
 git clone https://github.com/google/breakpad.git
 ```
 
-Since breakpad depends on the third-party lss library, after the clone of breakpad's source code is completed, enter the root directory and continue to pull the third-party lss library into the src/third\_party directory of breakpad. The git commands are as follows:
+Since breakpad depends on the third-party lss library, after the clone of breakpad's source code is completed, enter the root directory and continue to pull the third-party lss library into the src/third_party directory of breakpad. The git commands are as follows:
 
 ```shell
 git clone https://chromium.googlesource.com/linux-syscall-support src/third_party/lss
@@ -182,7 +182,7 @@ After the source code download is completed, copy the entire src directory files
 
 ![Figure 7-4 included breakpad file](https://raw.githubusercontent.com/helsonzhao/THE_ART_OF_ANDROID_PERFORMANCE_OPTIMIZATION/main/assets/chapter7_img_5.png)
 
-The android/google\_breakpad/Android.mk file in the Breakpad project already tells us which source files to include. Therefore, in the Android.mk or CMakeLists.txt configuration build file of our own project, we can include the source code in the way provided by the project. I use CMakeLists to build Native code in the example program, so the configuration is as follows:&#x20;
+The android/google_breakpad/Android.mk file in the Breakpad project already tells us which source files to include. Therefore, in the Android.mk or CMakeLists.txt configuration build file of our own project, we can include the source code in the way provided by the project. I use CMakeLists to build Native code in the example program, so the configuration is as follows:&#x20;
 
 ```c++
 #breakpad
@@ -216,7 +216,7 @@ target_include_directories(breakpad PUBLIC
             breakpad/src)    
 ```
 
-In the CMakeLists configuration file, you need to use the add\_library function to import the source code that needs to be packaged in Breakpad, generate the Breakpad library, and then link it to our own so library. In the example program, it will be linked to the optimize.so library. The configuration is as follows:&#x20;
+In the CMakeLists configuration file, you need to use the add_library function to import the source code that needs to be packaged in Breakpad, generate the Breakpad library, and then link it to our own so library. In the example program, it will be linked to the optimize.so library. The configuration is as follows:&#x20;
 
 ```c
 target_link_libraries(
@@ -276,11 +276,11 @@ The parsing method is as follows:&#x20;
 
 ![Figure 7-8 Executing the compile command](https://raw.githubusercontent.com/helsonzhao/THE_ART_OF_ANDROID_PERFORMANCE_OPTIMIZATION/main/assets/chapter7_img_8.png)
 
-3\) Navigate to the src/processor directory of Breakpad and execute the command "./minidump\_stackwalk source.dmp > output.txt", which can parse the binary crash log into text format, as shown in Figure 7-9.
+3\) Navigate to the src/processor directory of Breakpad and execute the command "./minidump_stackwalk source.dmp > output.txt", which can parse the binary crash log into text format, as shown in Figure 7-9.
 
 ![Figure 7-9 Parsing crash files](https://raw.githubusercontent.com/helsonzhao/THE_ART_OF_ANDROID_PERFORMANCE_OPTIMIZATION/main/assets/chapter7_img_9.png)
 
-The parsed Breakpad crash log is shown in Figure 7-10. As can be seen, the stacks in the log when converted to text format are all hexadecimal addresses. We can use the addr2line tool mentioned in the previous chapter to restore the binary addresses to detailed stack information, or we can use the dump\_syms tool in src/tools under the Breakpad directory to export the symbols of the so library with symbols, and then use the minidump\_stackwalk tool for parsing, so that the addresses in the parsed log can be restored.&#x20;
+The parsed Breakpad crash log is shown in Figure 7-10. As can be seen, the stacks in the log when converted to text format are all hexadecimal addresses. We can use the addr2line tool mentioned in the previous chapter to restore the binary addresses to detailed stack information, or we can use the dump_syms tool in src/tools under the Breakpad directory to export the symbols of the so library with symbols, and then use the minidump_stackwalk tool for parsing, so that the addresses in the parsed log can be restored.&#x20;
 
 ![Figure 7-10 Parsed crash log](https://raw.githubusercontent.com/helsonzhao/THE_ART_OF_ANDROID_PERFORMANCE_OPTIMIZATION/main/assets/chapter7_img_10.png)
 
@@ -298,13 +298,13 @@ sigaction(SIGQUIT, &sa, &old_sa[SIGILL]);
 
 However, after actually running this code, we will find that our custom exception handling function does not catch the SIGQUIT signal, because the system blocks the SIGQUIT signal and does not allow sigaction to receive the SIGQUIT signal.
 
-When the program starts, it will start a SignalCatcher thread, which will block and listen for the SIGQUIT signal through the sigwait function. The source code implementation is shown in Figure 7-11, and it is located in the signal\_catcher.cc file. The sigwait function is also a function for listening to signals. Compared with the sigaction function, it uses a synchronous receiving method, which means only one place is allowed to listen for the specified signal, while the sigaction function is asynchronous and can listen for and process the execution signal in multiple places.&#x20;
+When the program starts, it will start a SignalCatcher thread, which will block and listen for the SIGQUIT signal through the sigwait function. The source code implementation is shown in Figure 7-11, and it is located in the signal_catcher.cc file. The sigwait function is also a function for listening to signals. Compared with the sigaction function, it uses a synchronous receiving method, which means only one place is allowed to listen for the specified signal, while the sigaction function is asynchronous and can listen for and process the execution signal in multiple places.&#x20;
 
 ![Figure 7-11 SignalCatcher thread listens to SIGQUIT signal source code](https://raw.githubusercontent.com/helsonzhao/THE_ART_OF_ANDROID_PERFORMANCE_OPTIMIZATION/main/assets/chapter7_img_11.png)
 
 Although the system blocks the asynchronous way of receiving the SIGQUIT signal via sigaction, it cannot block the synchronous monitoring of the SIGQUIT signal via sigwait. This also ensures that after the SignalCatcher thread receives the SIGQUIT signal, it can normally obtain information about each thread in the process and output it to the /data/anr/traces.txt file.&#x20;
 
-Although the SIGQUIT signal is blocked by the system, we can use  pthread\_sigmask  function  to remove the SIGQUIT signal from the signal mask set of the current thread , and the implementation is as follows&#x20;
+Although the SIGQUIT signal is blocked by the system, we can use  pthread_sigmask  function  to remove the SIGQUIT signal from the signal mask set of the current thread , and the implementation is as follows&#x20;
 
 ```c++
 // Define a signal set
@@ -317,7 +317,7 @@ sigaddset(&new_set, SIGQUIT);
 pthread_sigmask(SIG_UNBLOCK, &new_set, &old_set);
 ```
 
-When the masking of  the SIGQUIT signal  is lifted, the above capture of the SIGQUIT signal will take effect. We can implement the handling of ANR in the signal handling function. In addition to capturing the ANR Trace data, we also need to ensure that the original SignalCatcher thread can respond to the SIGQUIT signal. Since the SignalCatcher thread does not respond to the SIGQUIT signal through sigaction, directly executing old\_sa will not take effect. At this time, we can use the tgkill signal sending function to send a SIGQUIT signal to the SignalCatcher thread. The tgkill function needs to know the thread ID when sending a signal to a specified thread, so we also need to traverse all the thread data recorded in the /proc/{pid}/task directory under this process to obtain the thread ID corresponding to the thread named "SignalCatcher". The code implementation is as follows.&#x20;
+When the masking of  the SIGQUIT signal  is lifted, the above capture of the SIGQUIT signal will take effect. We can implement the handling of ANR in the signal handling function. In addition to capturing the ANR Trace data, we also need to ensure that the original SignalCatcher thread can respond to the SIGQUIT signal. Since the SignalCatcher thread does not respond to the SIGQUIT signal through sigaction, directly executing old_sa will not take effect. At this time, we can use the tgkill signal sending function to send a SIGQUIT signal to the SignalCatcher thread. The tgkill function needs to know the thread ID when sending a signal to a specified thread, so we also need to traverse all the thread data recorded in the /proc/{pid}/task directory under this process to obtain the thread ID corresponding to the thread named "SignalCatcher". The code implementation is as follows.&#x20;
 
 ```c++
 // Signal handler function
@@ -377,7 +377,7 @@ void anrDumpTraceCallback(JNIEnv *env) {
 }
 ```
 
-Before the ActivityManagerService notifies the process to launch the ANR pop-up window, it sets a flag of "NOT\_RESPONDING" for the process that has experienced an ANR, indicating that the process has encountered an exception, and this flag can be obtained through the getProcessesInErrorState method of ActivityManager. Therefore, in the onANRDumpTrace function, we can call this method to obtain the error state of the process. If the process is in the NOT\_RESPONDING state, it indicates that the process has experienced an ANR, and at this time, the secondary confirmation of the ANR is completed. The code implementation is as follows.
+Before the ActivityManagerService notifies the process to launch the ANR pop-up window, it sets a flag of "NOT_RESPONDING" for the process that has experienced an ANR, indicating that the process has encountered an exception, and this flag can be obtained through the getProcessesInErrorState method of ActivityManager. Therefore, in the onANRDumpTrace function, we can call this method to obtain the error state of the process. If the process is in the NOT_RESPONDING state, it indicates that the process has experienced an ANR, and at this time, the secondary confirmation of the ANR is completed. The code implementation is as follows.
 
 ```java
 void onANRDumpTrace() {
@@ -419,7 +419,7 @@ void dealAnr(){
 }
 ```
 
-In the custom write interception function above, the my\_write function, we can write ANR data into the program's own directory. We can use C++'s fstream to perform the file data writing operation, and the code implementation is as follows:&#x20;
+In the custom write interception function above, the my_write function, we can write ANR data into the program's own directory. We can use C++'s fstream to perform the file data writing operation, and the code implementation is as follows:&#x20;
 
 ```c++
 #include <fstream>
@@ -507,17 +507,17 @@ Some of the main types are explained as shown in the table below:&#x20;
 | TAG Value | Type          | Explanation                                                                                                                                                                                             |
 | --------- | ------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | 0x01      | STRING        | records information about string objects                                                                                                                                                                |
-| 0x02      | LOAD\_CLASS   | records information about the loaded classes, including the object identifier of the class, the string ID of the class name, etc.                                                                       |
-| 0x04      | STACK\_FRAME  | records information about the stack frame, including ID, method name, class name, source file name, line number, etc.                                                                                   |
-| 0x05      | STACK\_TRACE  | records stack trace information, including sequence number, thread ID, number of stack frames, stack frames, etc.                                                                                       |
-| 0x07      | HEAP\_SUMMARY | records the overall situation of heap memory, including used memory, total memory, number of objects, etc.                                                                                              |
-| 0x0C      | HEAP\_DUMP    | A file containing a complete memory snapshot of the application at runtime, recording the state and content of all objects in the application.                                                          |
-|  0x1C     | DUMP\_SEGMENT | records the state, reference relationships, and other relevant information of all objects. By analyzing heap memory snapshots, we can identify memory leaks, optimize memory usage, and locate issues.  |
-| 0x0D      | CPU\_SAMPLES  | Record CPU usage, including thread ID, number of samples, stack frames, etc.                                                                                                                            |
+| 0x02      | LOAD_CLASS   | records information about the loaded classes, including the object identifier of the class, the string ID of the class name, etc.                                                                       |
+| 0x04      | STACK_FRAME  | records information about the stack frame, including ID, method name, class name, source file name, line number, etc.                                                                                   |
+| 0x05      | STACK_TRACE  | records stack trace information, including sequence number, thread ID, number of stack frames, stack frames, etc.                                                                                       |
+| 0x07      | HEAP_SUMMARY | records the overall situation of heap memory, including used memory, total memory, number of objects, etc.                                                                                              |
+| 0x0C      | HEAP_DUMP    | A file containing a complete memory snapshot of the application at runtime, recording the state and content of all objects in the application.                                                          |
+|  0x1C     | DUMP_SEGMENT | records the state, reference relationships, and other relevant information of all objects. By analyzing heap memory snapshots, we can identify memory leaks, optimize memory usage, and locate issues.  |
+| 0x0D      | CPU_SAMPLES  | Record CPU usage, including thread ID, number of samples, stack frames, etc.                                                                                                                            |
 
 When analyzing the cause of OOM through Hprof, we only need to know the object's dependencies and data size to complete the analysis. Therefore, we do not need to know the specific content of the data, and all data that does not affect OOM analysis can be trimmed.&#x20;
 
-For Hprof files, most of the data content is in the two data entries HEAP\_DUMP and DUMP\_SEGMENT. Therefore, we need to further understand the detailed data content under this data entry. Through the first ByteDance of the data content in this data entry, we can further identify the subtype of the data content. The hprof.cc file has the value definitions of the sub-data types of the HEAP\_DUMP and DUMP\_SEGMENT entries, as shown in Figure 7-17.&#x20;
+For Hprof files, most of the data content is in the two data entries HEAP_DUMP and DUMP_SEGMENT. Therefore, we need to further understand the detailed data content under this data entry. Through the first ByteDance of the data content in this data entry, we can further identify the subtype of the data content. The hprof.cc file has the value definitions of the sub-data types of the HEAP_DUMP and DUMP_SEGMENT entries, as shown in Figure 7-17.&#x20;
 
 ![Figure 7-17 Value definition of sub-data entry Tag](https://raw.githubusercontent.com/helsonzhao/THE_ART_OF_ANDROID_PERFORMANCE_OPTIMIZATION/main/assets/chapter7_img_17.png)
 
@@ -525,20 +525,20 @@ Here are some major sub-data types, as shown in the table.
 
 | TAG Value | Data Type              | Description                                                                       |
 | --------- | ---------------------- | --------------------------------------------------------------------------------- |
-| 0x01      | ROOT\_JNI\_GLOBAL      | This record type represents a global reference created through JNI code           |
-| 0x02      | ROOT\_JNI\_LOCAL       | This record type represents a local reference created through JNI code.           |
-| 0x03      | ROOT\_JAVA\_FRAME      | This record type represents the frame information in the Java method call stack   |
-| 0x04      | ROOT\_NATIVE\_STACK    | This record type represents the frame information in the local method call stack  |
-| 0x20      | CLASS\_DUMP            | The record contains information about Java classes                                |
-| 0x21      | INSTANCE\_DUMP         | records the detailed information of the object instance                           |
-| 0x22      | OBJECT\_ARRAY\_DUMP    | Record the data of the object array                                               |
-| 0x23      | PRIMITIVE\_ARRAY\_DUMP | records the data of the basic type array                                          |
+| 0x01      | ROOT_JNI_GLOBAL      | This record type represents a global reference created through JNI code           |
+| 0x02      | ROOT_JNI_LOCAL       | This record type represents a local reference created through JNI code.           |
+| 0x03      | ROOT_JAVA_FRAME      | This record type represents the frame information in the Java method call stack   |
+| 0x04      | ROOT_NATIVE_STACK    | This record type represents the frame information in the local method call stack  |
+| 0x20      | CLASS_DUMP            | The record contains information about Java classes                                |
+| 0x21      | INSTANCE_DUMP         | records the detailed information of the object instance                           |
+| 0x22      | OBJECT_ARRAY_DUMP    | Record the data of the object array                                               |
+| 0x23      | PRIMITIVE_ARRAY_DUMP | records the data of the basic type array                                          |
 
-When analyzing OOM, we only need to focus on the size of objects and their reference relationships. Therefore, data containing key information about reference chains, such as ROOT\_JNI\_GLOBAL, ROOT\_JNI\_LOCAL, and ROOT\_JAVA\_FRAME, should all be retained. However, for data segments that record metadata, such as INSTANCE\_DUMP and PRIMITIVE\_ARRAY\_DUMP, we can delete them all.&#x20;
+When analyzing OOM, we only need to focus on the size of objects and their reference relationships. Therefore, data containing key information about reference chains, such as ROOT_JNI_GLOBAL, ROOT_JNI_LOCAL, and ROOT_JAVA_FRAME, should all be retained. However, for data segments that record metadata, such as INSTANCE_DUMP and PRIMITIVE_ARRAY_DUMP, we can delete them all.&#x20;
 
 ## 7.3.2 Hprof Tailoring Solution
 
-Once you understand the data structure of the Hprof file, you can start trimming it. The technical principle of trimming is not complicated, mainly involving routine operations on file streams. We need to read the ByteFlow of the file, then restore the ByteFlow of the file back to the corresponding data based on the file's data structure, then modify the data, and finally write it back to a new file through the ByteFlow. Here, I only take trimming the data content of PRIMITIVE\_ARRAY\_DUMP as an example to explain the code.
+Once you understand the data structure of the Hprof file, you can start trimming it. The technical principle of trimming is not complicated, mainly involving routine operations on file streams. We need to read the ByteFlow of the file, then restore the ByteFlow of the file back to the corresponding data based on the file's data structure, then modify the data, and finally write it back to a new file through the ByteFlow. Here, I only take trimming the data content of PRIMITIVE_ARRAY_DUMP as an example to explain the code.
 
 First, use the Input Stream object DataInputStream provided by Java to read the ByteFlow of the Hprof file. According to the data structure of HprofHeader defined earlier, read out the corresponding data in sequence. The read operation of the DataInputStream object will move the index of the ByteFlow to the position after the read data, so there is no need for us to manually set the index position of the file stream reading. While reading the data stream of the original file, we can simultaneously write the modified data stream into a new file through the Output Stream object DataOutputStream provided by Java. For data that does not need to be cropped or modified, simply write it as the original data. The code implementation is as follows.&#x20;
 
@@ -560,7 +560,7 @@ dataOutStream.writeInt(hprofHeader.highTime);
 dataOutStream.writeInt(hprofHeader.lowTime);
 ```
 
-After reading the data in the Header, the byte stream index of the file then moves to the position of the Record data entry. Next, we find the data segment of HEAP\_DUMP through the value of the first-level Tag, and then find the data segment of PRIMITIVE\_ARRAY\_DUMP under the HEAP\_DUMP segment through the value of the second-level Tag. For the data in this segment, when writing the data back, we skip writing this data, thus completing the pruning of PRIMITIVE\_ARRAY\_DUMP. The code implementation is as follows:&#x20;
+After reading the data in the Header, the byte stream index of the file then moves to the position of the Record data entry. Next, we find the data segment of HEAP_DUMP through the value of the first-level Tag, and then find the data segment of PRIMITIVE_ARRAY_DUMP under the HEAP_DUMP segment through the value of the second-level Tag. For the data in this segment, when writing the data back, we skip writing this data, thus completing the pruning of PRIMITIVE_ARRAY_DUMP. The code implementation is as follows:&#x20;
 
 ```java
 int tag;
@@ -588,13 +588,13 @@ while ((tag = dataStream.read()) != -1) {
 
 ```
 
-After running the above code, we have completed the Hprof trimming process. As long as one is familiar with the Hprof file format and understands the basic operations of file streams, they can easily understand and implement this optimization solution. I have only trimmed the data content of PRIMITIVE\_ARRAY\_DUMP here, and readers can follow the above process to further trim the unused data in the Hprof file.&#x20;
+After running the above code, we have completed the Hprof trimming process. As long as one is familiar with the Hprof file format and understands the basic operations of file streams, they can easily understand and implement this optimization solution. I have only trimmed the data content of PRIMITIVE_ARRAY_DUMP here, and readers can follow the above process to further trim the unused data in the Hprof file.&#x20;
 
 There are two mainstream directions for cropping Hprof files. The first is to crop and upload the original Hprof file after capturing a complete Hprof file via Debug.dumpHprofData, which is the direction introduced above. The second is to intercept the system's write function through Native Hook, and then crop the data while the system is writing memory snapshot data. Each of these two methods has its own advantages and disadvantages. The former solution is simple and does not affect the original Hprof file, while the latter solution is more efficient, but because it uses Native Hook technology, compatibility and stability issues are inevitable.
 
 ## 7.3.3 Use open source frameworks
 
-In the above process, only one data segment, PRIMITIVE\_ARRAY\_DUMP, was trimmed. In real-world scenarios, we will trim more data to achieve better results. To ensure better stability and trimming effectiveness when used online, I still recommend using open-source third-party frameworks. There are also many open-source frameworks in this area, but their principles are similar to those described earlier. Here, the [Tailor](https://github.com/bytedance/tailor) framework open-sourced by ByteDance is recommended. In addition to trimming the data within Hprof, this tool further compresses the data after trimming. Since the data has been compressed, the Hprof file needs to be decompressed using the decompression script provided by Tailor before it can be used. Thanks to the dual effects of trimming and compression, this framework can reduce a Hprof file of several hundred megabytes to within a few dozen megabytes or even a dozen megabytes, greatly improving the success rate of capturing and uploading memory snapshots. The detailed usage instructions are provided in the official Github documentation, so I will not elaborate further.&#x20;
+In the above process, only one data segment, PRIMITIVE_ARRAY_DUMP, was trimmed. In real-world scenarios, we will trim more data to achieve better results. To ensure better stability and trimming effectiveness when used online, I still recommend using open-source third-party frameworks. There are also many open-source frameworks in this area, but their principles are similar to those described earlier. Here, the [Tailor](https://github.com/bytedance/tailor) framework open-sourced by ByteDance is recommended. In addition to trimming the data within Hprof, this tool further compresses the data after trimming. Since the data has been compressed, the Hprof file needs to be decompressed using the decompression script provided by Tailor before it can be used. Thanks to the dual effects of trimming and compression, this framework can reduce a Hprof file of several hundred megabytes to within a few dozen megabytes or even a dozen megabytes, greatly improving the success rate of capturing and uploading memory snapshots. The detailed usage instructions are provided in the official Github documentation, so I will not elaborate further.&#x20;
 
 # 7.4 Native Crash Analysis Approach
 
@@ -628,7 +628,7 @@ Since the so library of the example program retains symbols, it is possible to d
 
 ![Figure 7-20 The function of collapse](https://raw.githubusercontent.com/helsonzhao/THE_ART_OF_ANDROID_PERFORMANCE_OPTIMIZATION/main/assets/chapter7_img_20.png)
 
-For online programs, considering security and package size, we usually remove the symbol table. In this case, we can use the addr2line tool in conjunction with the so library with the symbol table to perform stack restoration. We also learned this part of knowledge in Chapter 3 "Practical Memory Optimization". According to the stack information, we can see that the offset address where the exception occurred is 1edfe. By executing the instruction "addr2line -C -f -e libexample.so 0x0001edfe", the result is shown in Figure 7-21. From the third line, we can see that the crash is accurately located at line 12 of mock\_native\_crash.cpp.&#x20;
+For online programs, considering security and package size, we usually remove the symbol table. In this case, we can use the addr2line tool in conjunction with the so library with the symbol table to perform stack restoration. We also learned this part of knowledge in Chapter 3 "Practical Memory Optimization". According to the stack information, we can see that the offset address where the exception occurred is 1edfe. By executing the instruction "addr2line -C -f -e libexample.so 0x0001edfe", the result is shown in Figure 7-21. From the third line, we can see that the crash is accurately located at line 12 of mock_native_crash.cpp.&#x20;
 
 ![Figure 7-21 Crash Localization](https://raw.githubusercontent.com/helsonzhao/THE_ART_OF_ANDROID_PERFORMANCE_OPTIMIZATION/main/assets/chapter7_img_21.png)
 

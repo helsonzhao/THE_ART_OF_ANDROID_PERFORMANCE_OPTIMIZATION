@@ -18,7 +18,7 @@ Memory leaks can be analyzed in two ways: manual analysis and automatic analysis
 
 The method of manually analyzing memory leaks requires us to capture the Hprof (Heap Profile, memory snapshot) file through commands. This file is a type of heap dump file of the virtual machine, which records the heap memory allocation and object usage during the program's runtime, and is used to analyze the memory usage of Java applications. Then, by analyzing the reference chain of objects through the Hprof file, we can discover and resolve memory leak issues.&#x20;
 
-The Hprof file of the program can be captured using the command “adb shell am dumpheap \<process\_id> \<output\_file>”. The code for capturing the Hprof file of the sample program in this book is as follows.&#x20;
+The Hprof file of the program can be captured using the command “adb shell am dumpheap \<process_id> \<output_file>”. The code for capturing the Hprof file of the sample program in this book is as follows.&#x20;
 
 ```shell
  adb shell am dumpheap com.example.performance_optimize /data/local/tmp/demo.hprof
@@ -48,7 +48,7 @@ In addition to using Android Studio, we can also use the MAT tool in Eclipse to 
 hprof-conv demo.hprof after_demo.hprof
 ```
 
-Drag the converted after\_demo.hprof into the MAT tool, and you will see the interface shown in Figure 3-3.
+Drag the converted after_demo.hprof into the MAT tool, and you will see the interface shown in Figure 3-3.
 
 ![Figure 3-3 MAT Analysis Hprof Interface](https://raw.githubusercontent.com/helsonzhao/THE_ART_OF_ANDROID_PERFORMANCE_OPTIMIZATION/main/assets/chapter3_img_3.png)
 
@@ -254,7 +254,7 @@ After understanding the principle of the above external function call, we can st
 
 Having understood the process and thinking, we can now implement it through code. The code for the main process is as follows:&#x20;
 
-1. By reading the maps file line by line, we can find and parse out the address of libexample.so. Of course, we can also use the [dl\_iterate\_phdr](https://man7.org/linux/man-pages/man3/dl_iterate_phdr.3.html) function provided by the Linux system to more conveniently find the base address of libexample.so.&#x20;
+1. By reading the maps file line by line, we can find and parse out the address of libexample.so. Of course, we can also use the [dl_iterate_phdr](https://man7.org/linux/man-pages/man3/dl_iterate_phdr.3.html) function provided by the Linux system to more conveniently find the base address of libexample.so.&#x20;
 
    ```c++
    FILE *fp = fopen("/proc/self/maps", "r");
@@ -277,7 +277,7 @@ Having understood the process and thinking, we can now implement it through code
    fclose(fp);
    ```
 
-2. Then, based on the device platform, convert the obtained base address of the so library into the Elf32\_Ehdr or Elf64\_Ehd data structure, which is the corresponding data structure after the ELF file is loaded into memory. After including the \<linux/elf.h> Header File, this data structure can be used. My platform environment is 32-bit, so in the following text, the 32-bit data structure will be used uniformly for code demonstration. However, in actual use, it is necessary to check the platform version and then select the corresponding ELF structure.&#x20;
+2. Then, based on the device platform, convert the obtained base address of the so library into the Elf32_Ehdr or Elf64_Ehd data structure, which is the corresponding data structure after the ELF file is loaded into memory. After including the \<linux/elf.h> Header File, this data structure can be used. My platform environment is 32-bit, so in the following text, the 32-bit data structure will be used uniformly for code demonstration. However, in actual use, it is necessary to check the platform version and then select the corresponding ELF structure.&#x20;
 
    ```c++
    // Data structure of 32-bit ELF file header
@@ -302,7 +302,7 @@ Having understood the process and thinking, we can now implement it through code
    Elf32_Ehdr *header = (Elf32_Ehdr *) (base_addr); 
    ```
 
-3. Obtain the entry address of the program header table through the data structure of Elf\_Ehdr, which is e\_phoff (the offset address of the program header table) plus the base address of the so library. After obtaining the address of the program header table, still convert it to the corresponding data structure Elf32\_Phdr of the program header table, which is also defined in the elf.h file. Then we can traverse the data structure of the program header table, find the segment with p\_type being PT\_DYNAMIC, that is, the `.dynamic` segment, and obtain the address and size of this segment. The code implementation is as follows:
+3. Obtain the entry address of the program header table through the data structure of Elf_Ehdr, which is e_phoff (the offset address of the program header table) plus the base address of the so library. After obtaining the address of the program header table, still convert it to the corresponding data structure Elf32_Phdr of the program header table, which is also defined in the elf.h file. Then we can traverse the data structure of the program header table, find the segment with p_type being PT_DYNAMIC, that is, the `.dynamic` segment, and obtain the address and size of this segment. The code implementation is as follows:
 
 ```c++
 typedef struct {
@@ -331,7 +331,7 @@ for (int i = 0; i < phr_count; i++) {
 }
 ```
 
-* Traverse the found `.dynamic` section. When d\_tag is DT\_PLTREL, it is the section pointing to the plt table, and we can obtain the address of the plt table through d\_val. The code implementation is as follows.
+* Traverse the found `.dynamic` section. When d_tag is DT_PLTREL, it is the section pointing to the plt table, and we can obtain the address of the plt table through d_val. The code implementation is as follows.
 
   ```c++
   typedef struct {
@@ -397,7 +397,7 @@ As can be seen, implementing this process is not very complicated, but there is 
 
 ![Figure 3-20 .rel.plt table data](https://raw.githubusercontent.com/helsonzhao/THE_ART_OF_ANDROID_PERFORMANCE_OPTIMIZATION/main/assets/chapter3_img_17.png)
 
-The `.rel.plt` table is also located in the `.dynamic` section. We can use the d\_tag DT\_JMPREL to determine whether it is this table. The `.rel.plt` table contains the address of the malloc function in the `.got` table and the corresponding symbol of the malloc function. When traversing the `.dynamic` section, we can also obtain the symbol table DT\_SYMTAB and the size of the `.rel.plt` table DT\_PLTRELSZ. These two pieces of data will be used later. The implementation code is as follows:&#x20;
+The `.rel.plt` table is also located in the `.dynamic` section. We can use the d_tag DT_JMPREL to determine whether it is this table. The `.rel.plt` table contains the address of the malloc function in the `.got` table and the corresponding symbol of the malloc function. When traversing the `.dynamic` section, we can also obtain the symbol table DT_SYMTAB and the size of the `.rel.plt` table DT_PLTRELSZ. These two pieces of data will be used later. The implementation code is as follows:&#x20;
 
 ```c++
 Elf32_Rel *rela;
@@ -441,7 +441,7 @@ for (size_t i = 0; i < entries; ++i) {
 }
 ```
 
-In the above code, we obtained the symbol of the entry through the index of the entry, but the symbol only contains index data and no data for the symbol name. Therefore, we still need to call the getSymbolNameByValue method and obtain the corresponding symbol name based on this symbol. The table that records the symbol names is located in the symtab section. Therefore, we need to traverse the sections of the so and find the symtab section (SHT\_STRTAB). The code implementation is as follows. The process involves a lot of knowledge about symbols. If readers are not familiar with this part of the knowledge, they can read the more in-depth explanation of symbols in Chapter 5 and then come back to look at the process here.&#x20;
+In the above code, we obtained the symbol of the entry through the index of the entry, but the symbol only contains index data and no data for the symbol name. Therefore, we still need to call the getSymbolNameByValue method and obtain the corresponding symbol name based on this symbol. The table that records the symbol names is located in the symtab section. Therefore, we need to traverse the sections of the so and find the symtab section (SHT_STRTAB). The code implementation is as follows. The process involves a lot of knowledge about symbols. If readers are not familiar with this part of the knowledge, they can read the more in-depth explanation of symbols in Chapter 5 and then come back to look at the process here.&#x20;
 
 ```c++
 std::string getSymbolNameByValue(uintptr_t base_addr , Elf32_Sym *sym) {
@@ -478,7 +478,7 @@ Native Hook is a well-established technology, and there are many relevant open-s
 
 * profilo: <https://github.com/facebookincubator/profilo/tree/main/deps/plthooks>
 
-Here, I take the open-source plt hook library bhook as an example to hook the malloc function in the testmalloc.so library of the sample program. By using the bytehook\_hook\_single interface provided by bhook, one can easily implement the hooking of the malloc function in the libexample.so library. The code implementation is as follows.&#x20;
+Here, I take the open-source plt hook library bhook as an example to hook the malloc function in the testmalloc.so library of the sample program. By using the bytehook_hook_single interface provided by bhook, one can easily implement the hooking of the malloc function in the libexample.so library. The code implementation is as follows.&#x20;
 
 ```c++
 Java_com_example_performance_1optimize_memory_NativeLeakActivity_hookMallocByBHook(
@@ -504,7 +504,7 @@ Once an abnormal memory allocation is detected in a custom function, we need to 
 
 During program execution, when a Native function enters the stack instruction, it writes information such as the address of the corresponding instruction into the `.eh_frame` and `.eh_frame_hdr sections`. These two sections are also part of the segment composition of the so ELF file. Therefore, to obtain the Native stack, one only needs to read the data from these two sections.&#x20;
 
-In actual projects, we don't need to implement this solution ourselves. In the Android system, we can directly use the libunwind library to obtain Native stack information. However, the underlying principle of the libunwind library is actually implemented by reading CFI. The usage of the libunwind library is shown in the following code, where the \_Unwind\_Backtrace function is the function provided by the libunwind library for obtaining stack information. The input parameters of this function require passing in a callback function and a pointer data, and we can obtain this data in the callback function. The callback function can obtain the data returned by the \_Unwind\_Backtrace function during the stack traceback process, and can also control whether to continue the stack traceback. The pointer data input parameter can pass in a custom BacktraceState structure, which is used to store the data returned by the callback and to limit the maximum stack traceback depth.&#x20;
+In actual projects, we don't need to implement this solution ourselves. In the Android system, we can directly use the libunwind library to obtain Native stack information. However, the underlying principle of the libunwind library is actually implemented by reading CFI. The usage of the libunwind library is shown in the following code, where the _Unwind_Backtrace function is the function provided by the libunwind library for obtaining stack information. The input parameters of this function require passing in a callback function and a pointer data, and we can obtain this data in the callback function. The callback function can obtain the data returned by the _Unwind_Backtrace function during the stack traceback process, and can also control whether to continue the stack traceback. The pointer data input parameter can pass in a custom BacktraceState structure, which is used to store the data returned by the callback and to limit the maximum stack traceback depth.&#x20;
 
 ```c++
 #include <unwind.h> 
@@ -525,7 +525,7 @@ void printNativeStack() {
 }
 ```
 
-After passing the custom callback function unwindCallback to the \_Unwind\_Backtrace method, we can receive the callback data in the callback function. At this point, we can extract the address of the stack frame and store it in the buffer container of the BacktraceState structure passed earlier. When the depth of the cached stack exceeds the previously configured threshold of 30, return \_URC\_END\_OF\_STACK to exit stack backtracking; in other cases, return \_URC\_NO\_REASON to indicate continuing backtracking. The code flow is as follows.&#x20;
+After passing the custom callback function unwindCallback to the _Unwind_Backtrace method, we can receive the callback data in the callback function. At this point, we can extract the address of the stack frame and store it in the buffer container of the BacktraceState structure passed earlier. When the depth of the cached stack exceeds the previously configured threshold of 30, return _URC_END_OF_STACK to exit stack backtracking; in other cases, return _URC_NO_REASON to indicate continuing backtracking. The code flow is as follows.&#x20;
 
 ```c++
 // Callback function
@@ -562,7 +562,7 @@ void dumpBacktrace(void **buffer, size_t depth) {
 
 ## 3.2.3 Native Stack Information Restoration
 
-When obtaining stack information through the \_Unwind\_Backtrace function, we can actually only obtain the hexadecimal address information of the stack. The log is shown in Figure 3-22. Based on these addresses, it is impossible to view valid information. Therefore, we also need to restore the addresses to the corresponding detailed function information.&#x20;
+When obtaining stack information through the _Unwind_Backtrace function, we can actually only obtain the hexadecimal address information of the stack. The log is shown in Figure 3-22. Based on these addresses, it is impossible to view valid information. Therefore, we also need to restore the addresses to the corresponding detailed function information.&#x20;
 
 ![Figure 3-22 Stack information obtained by Unwind](https://raw.githubusercontent.com/helsonzhao/THE_ART_OF_ANDROID_PERFORMANCE_OPTIMIZATION/main/assets/chapter3_img_19.png)
 
@@ -570,7 +570,7 @@ Restoring the hexadecimal address stack to a stack with valid information can be
 
 1\)**Online stack information restoration**
 
-First, we need to know which so library the address corresponds to. There are multiple ways to confirm the so library name, such as by parsing the maps file and then comparing the address range to confirm which so file it is. However, in actual business, we will call the dladdr function provided by the Linux system, which is specifically used to obtain information about the shared library where the specified address is located. The prototype of the function is as follows. In the function, the input parameter addr is the address to be queried, and info is a pointer to a Dl\_info structure used to store the query results.
+First, we need to know which so library the address corresponds to. There are multiple ways to confirm the so library name, such as by parsing the maps file and then comparing the address range to confirm which so file it is. However, in actual business, we will call the dladdr function provided by the Linux system, which is specifically used to obtain information about the shared library where the specified address is located. The prototype of the function is as follows. In the function, the input parameter addr is the address to be queried, and info is a pointer to a Dl_info structure used to store the query results.
 
 ```c++
 #include <dlfcn.h>
@@ -611,11 +611,11 @@ void dumpBacktrace(void **buffer, size_t count) {
 }
 ```
 
-After running the program, as shown in Figure 3-23, more complete stack information can be seen. By the symbolic names of the functions in the stack, we can basically locate which functions have exceptions. The information in lines #0 and #1 of the stack log is actually our Hook function and stack capture function in the liboptimize.so library, so the information in line #2 is the location of the memory allocation exception, with the corresponding so named libexample.so and the exception function being "Java\_com\_example\_performance\_1optimize\_memory\_NativeLeakActivity\_mallocLeak".&#x20;
+After running the program, as shown in Figure 3-23, more complete stack information can be seen. By the symbolic names of the functions in the stack, we can basically locate which functions have exceptions. The information in lines #0 and #1 of the stack log is actually our Hook function and stack capture function in the liboptimize.so library, so the information in line #2 is the location of the memory allocation exception, with the corresponding so named libexample.so and the exception function being "Java_com_example_performance_1optimize_memory_NativeLeakActivity_mallocLeak".&#x20;
 
 ![Figure 3-23 Stack after Confirming so Library and Symbol Name](https://raw.githubusercontent.com/helsonzhao/THE_ART_OF_ANDROID_PERFORMANCE_OPTIMIZATION/main/assets/chapter3_img_20.png)
 
-Through the logs, we can also find that for so libraries with symbol tables, such as liboptimize.so and libexample.so, dli\_sname can display the correct symbol name of the function, but for so libraries whose symbol tables have been removed, such as libart.so, it will display as null. For official online packages, considering security and package size, we generally also remove the symbol tables of so libraries. After removal, the libexample.so library can no longer obtain symbols normally, and we will not be able to locate which function has a problem. At this time, we can perform offline stack restoration based on the stack address.&#x20;
+Through the logs, we can also find that for so libraries with symbol tables, such as liboptimize.so and libexample.so, dli_sname can display the correct symbol name of the function, but for so libraries whose symbol tables have been removed, such as libart.so, it will display as null. For official online packages, considering security and package size, we generally also remove the symbol tables of so libraries. After removal, the libexample.so library can no longer obtain symbols normally, and we will not be able to locate which function has a problem. At this time, we can perform offline stack restoration based on the stack address.&#x20;
 
 2\)**Offline stack information restoration**
 
@@ -631,11 +631,11 @@ The offset address is supplemented. Through the Log, we can know that the offset
 addr2line -C -f -e libexample.so  0x1edea
 ```
 
-In the command, -C indicates decoding low-level symbol names into user-level names, -f indicates displaying the function name while showing the file name and line number information, and -e is used to specify the name of the executable file whose addresses need to be converted. The execution result is shown in Figure 3-24. As can be seen, the result shows that the offset address is located on line 10 of the mock\_native\_leak.cpp file. Based on this information, we can accurately locate the problematic area.&#x20;
+In the command, -C indicates decoding low-level symbol names into user-level names, -f indicates displaying the function name while showing the file name and line number information, and -e is used to specify the name of the executable file whose addresses need to be converted. The execution result is shown in Figure 3-24. As can be seen, the result shows that the offset address is located on line 10 of the mock_native_leak.cpp file. Based on this information, we can accurately locate the problematic area.&#x20;
 
 ![Figure 3-24 addr2line Stack Restoration](https://raw.githubusercontent.com/helsonzhao/THE_ART_OF_ANDROID_PERFORMANCE_OPTIMIZATION/main/assets/chapter3_img_21.png)
 
-It should be noted that the so library parsed by the addr2line tool needs to have a symbol table; otherwise, stack restoration cannot be performed correctly. The so library with a symbol table can be found in the merged\_native\_libs (Figure 3-26) of the compilation output (Figure 3-25). There is also a stripped\_native\_libs file in the compilation output files, where all the so libraries have had their symbol tables removed, and these so libraries are used in the official online packages.
+It should be noted that the so library parsed by the addr2line tool needs to have a symbol table; otherwise, stack restoration cannot be performed correctly. The so library with a symbol table can be found in the merged_native_libs (Figure 3-26) of the compilation output (Figure 3-25). There is also a stripped_native_libs file in the compilation output files, where all the so libraries have had their symbol tables removed, and these so libraries are used in the official online packages.
 
 ![3-25 Project Compilation Artifacts](https://raw.githubusercontent.com/helsonzhao/THE_ART_OF_ANDROID_PERFORMANCE_OPTIMIZATION/main/assets/chapter3_img_22.png)
 
@@ -649,9 +649,9 @@ For third-party SDKs, the symbol tables have already been removed, so it is also
 
 Actually, developing a highly stable Native memory detection tool that can be used online requires a great deal of effort. If readers do not have the energy to develop a complete set of so library abnormal memory detection tools, we can also use existing open-source tools. Here I introduce the following two:
 
-* malloc\_debug
+* malloc_debug
 
-malloc\_debug is a Native analysis tool officially provided by Googl&#x65;**,&#x20;**&#x61;nd its technical principle is consistent with the process described above. However, it intercepts functions related to memory allocation in the entire Zygote process and can only be used on rooted phones. It is not very flexible to use, has poor performance, and can only be used for offline work.
+malloc_debug is a Native analysis tool officially provided by Googl&#x65;**,&#x20;**&#x61;nd its technical principle is consistent with the process described above. However, it intercepts functions related to memory allocation in the entire Zygote process and can only be used on rooted phones. It is not very flexible to use, has poor performance, and can only be used for offline work.
 
 * memory-leak-detector
 
@@ -723,7 +723,7 @@ class MyAsmPlugin implements Plugin<Project> {
 }
 ```
 
-3\) Create a new "plugin\_name.properties" file in the resouces/META-INF/gradle-plugins/ directory of buildSrc, as shown in Figure 3-28, and configure the entry script in this file. Then, enable the script we configured by applying the plugin: 'MyAsmPlugin' in the gradle script of the app module.
+3\) Create a new "plugin_name.properties" file in the resouces/META-INF/gradle-plugins/ directory of buildSrc, as shown in Figure 3-28, and configure the entry script in this file. Then, enable the script we configured by applying the plugin: 'MyAsmPlugin' in the gradle script of the app module.
 
 ![Figure 3-28 Gradle Script Configuration](https://raw.githubusercontent.com/helsonzhao/THE_ART_OF_ANDROID_PERFORMANCE_OPTIMIZATION/main/assets/chapter3_img_25.png)
 
@@ -866,7 +866,7 @@ public static Bitmap createBitmap(DisplayMetrics display, int width, int height,
 public static Bitmap createBitmap(DisplayMetrics display, int width, int height, Bitmap.Config config, boolean hasAlpha, ColorSpace colorSpace)
 ```
 
-Therefore, we only need to intercept these few methods to detect the creation of Bitmaps in the program. Here, I take one of the creation methods as an example and intercepts it through Lancet. The code implementation is as follows. As can be seen, with Lancet, we don't need to write Gradle scripts or perform any bytecode operations; we can directly implement bytecode operations through Java code and annotations. In the intercepted code logic, the memory footprint of the Bitmap being created will be detected and logged before the Bitmap is created. Different Bitmap formats have different memory consumption. The common ARGB\_8888 format is 4 bytes in size, so when we use this format to display an image, the memory footprint is the width × height × 4 bytes of the image size. Other formats such as ARGB\_4444 and RGB\_565 are 2 bytes.
+Therefore, we only need to intercept these few methods to detect the creation of Bitmaps in the program. Here, I take one of the creation methods as an example and intercepts it through Lancet. The code implementation is as follows. As can be seen, with Lancet, we don't need to write Gradle scripts or perform any bytecode operations; we can directly implement bytecode operations through Java code and annotations. In the intercepted code logic, the memory footprint of the Bitmap being created will be detected and logged before the Bitmap is created. Different Bitmap formats have different memory consumption. The common ARGB_8888 format is 4 bytes in size, so when we use this format to display an image, the memory footprint is the width × height × 4 bytes of the image size. Other formats such as ARGB_4444 and RGB_565 are 2 bytes.
 
 ```sql
 @TargetClass(value = "android.graphics.Bitmap")
@@ -993,7 +993,7 @@ At this point, it is easy to find the leaked Bitmap, just like finding a leaked 
 
 There is still a relatively large proportion of 32-bit models in the market, so we often encounter program crashes caused by insufficient virtual memory space. Therefore, this section will mainly introduce the optimization of virtual memory. For optimization in this direction, the most commonly used solution is to release unused memory in the virtual memory space to increase the size of virtual memory.&#x20;
 
-Since we need to release the unused memory in the virtual memory space, we inevitably have to analyze the maps file and find the memory that can be released from it. By examining the maps file, as shown in Figure 3-31, we can find that the virtual memory size occupied by each thread stack (anno: stack\_and\_tls) is approximately 1MB. For a slightly larger application, it is quite normal to use hundreds of threads during its operation, and the total virtual memory consumed by these threads can reach up to hundreds MB. Therefore, optimizing the thread stack size is also one of the effective virtual memory optimization solutions.
+Since we need to release the unused memory in the virtual memory space, we inevitably have to analyze the maps file and find the memory that can be released from it. By examining the maps file, as shown in Figure 3-31, we can find that the virtual memory size occupied by each thread stack (anno: stack_and_tls) is approximately 1MB. For a slightly larger application, it is quite normal to use hundreds of threads during its operation, and the total virtual memory consumed by these threads can reach up to hundreds MB. Therefore, optimizing the thread stack size is also one of the effective virtual memory optimization solutions.
 
 ![Figure 3-31 maps File Data ](https://raw.githubusercontent.com/helsonzhao/THE_ART_OF_ANDROID_PERFORMANCE_OPTIMIZATION/main/assets/chapter3_img_28.png)
 
@@ -1029,7 +1029,7 @@ public synchronized void start() {
 }
 ```
 
-From the source code of the start function above, we can see that nativeCreate passes in stackSize, but its default value is 0. So why does a thread still have a default stack space of 1MB? We need to continue looking at the source code implementation of the nativeCreate function, whose implementation class is [java\_lang\_Thread.cc](https://cs.android.com/android/platform/superproject/+/master:art/runtime/native/java_lang_Thread.cc?q=Thread_nativeCreate), and the source code is as follows.
+From the source code of the start function above, we can see that nativeCreate passes in stackSize, but its default value is 0. So why does a thread still have a default stack space of 1MB? We need to continue looking at the source code implementation of the nativeCreate function, whose implementation class is [java_lang_Thread.cc](https://cs.android.com/android/platform/superproject/+/master:art/runtime/native/java_lang_Thread.cc?q=Thread_nativeCreate), and the source code is as follows.
 
 ```c++
 static void Thread_nativeCreate(JNIEnv* env, jclass, jobject java_thread, jlong stack_size, jboolean daemon) {
@@ -1045,7 +1045,7 @@ static void Thread_nativeCreate(JNIEnv* env, jclass, jobject java_thread, jlong 
 }
 ```
 
-nativeCreate will execute the Thread::CreateNativeThread function, which is the ultimate place where the thread is created. Its implementation is in [Thread.cc](https://cs.android.com/android/platform/superproject/+/master:art/runtime/thread.cc?q=thread.cc), and within this function, the FixStackSize method will be called to adjust stack\_size to 1MB. So the previous question is resolved here. Even if we set stack\_size to 0, it will still be adjusted here. The simplified code logic is as follows.
+nativeCreate will execute the Thread::CreateNativeThread function, which is the ultimate place where the thread is created. Its implementation is in [Thread.cc](https://cs.android.com/android/platform/superproject/+/master:art/runtime/thread.cc?q=thread.cc), and within this function, the FixStackSize method will be called to adjust stack_size to 1MB. So the previous question is resolved here. Even if we set stack_size to 0, it will still be adjusted here. The simplified code logic is as follows.
 
 ```c++
 void Thread::CreateNativeThread(JNIEnv* env, jobject java_peer, size_t stack_size, bool is_daemon) {
@@ -1079,7 +1079,7 @@ void Thread::CreateNativeThread(JNIEnv* env, jobject java_peer, size_t stack_siz
 }
 ```
 
-In the simplified code above, we can see that the source code implementation of CreateNativeThread ultimately calls the pthread\_create function, which is a Linux function, and the pthread\_create function will ultimately call [clone](https://man7.org/linux/man-pages/man2/clone.2.html) this kernel function. The main role of this function is to create a new process that shares specified resources with the calling process. The clone function will, based on the size of the stack passed in, allocate a block of virtual memory of the corresponding size through the mmap function and create a process. Therefore, for Linux systems, threads are actually lightweight processes that can share resources.&#x20;
+In the simplified code above, we can see that the source code implementation of CreateNativeThread ultimately calls the pthread_create function, which is a Linux function, and the pthread_create function will ultimately call [clone](https://man7.org/linux/man-pages/man2/clone.2.html) this kernel function. The main role of this function is to create a new process that shares specified resources with the calling process. The clone function will, based on the size of the stack passed in, allocate a block of virtual memory of the corresponding size through the mmap function and create a process. Therefore, for Linux systems, threads are actually lightweight processes that can share resources.&#x20;
 
 ```c++
 int clone(int (*fn)(void * arg), void *stack, int flags, void *arg);
@@ -1140,11 +1140,11 @@ After converging the wild thread pool, how should we converge the wild threads c
 
 ## 3.4.3 Reduce the default stack memory of threads
 
-As I mentioned earlier when explaining the source code of CreateNativeThread, this function will execute the FixStackSize method to adjust stack\_size to 1MB. Considering the previous cases of various hooks, it is easy for us to think that by intercepting the FixStackSize function through Native Hook, can we reduce stack\_size from 1MB to 512KB? Of course we can, because CreateNativeThread is a function located in libart.so, but CreateNativeThread actually calls pthread\_create to create threads, and pthread\_create is a function located in the libc.so library. If pthread\_create is called in CreateNativeThread, function calls need to be made through the PLT table and GOT table. Therefore, we can use PLT Hook technology to intercept the pthread\_create function in the libc.so library and directly set stack\_size in the input parameter \&attr to 512KB.&#x20;
+As I mentioned earlier when explaining the source code of CreateNativeThread, this function will execute the FixStackSize method to adjust stack_size to 1MB. Considering the previous cases of various hooks, it is easy for us to think that by intercepting the FixStackSize function through Native Hook, can we reduce stack_size from 1MB to 512KB? Of course we can, because CreateNativeThread is a function located in libart.so, but CreateNativeThread actually calls pthread_create to create threads, and pthread_create is a function located in the libc.so library. If pthread_create is called in CreateNativeThread, function calls need to be made through the PLT table and GOT table. Therefore, we can use PLT Hook technology to intercept the pthread_create function in the libc.so library and directly set stack_size in the input parameter \&attr to 512KB.&#x20;
 
 However, this approach lacks flexibility because in actual projects, we usually do not adjust the stack size of all threads. For some threads with heavy tasks, we will retain their original stack size. Therefore, we need to use an allowlist and dynamic configuration scheme to exclude those threads that do not need adjustment. So the best way for us is to be able to configure the stack space size of a thread when creating it at the Java layer.
 
-In the process of thread creation in the previous thread, we learned that when creating a thread at the Java layer, the stack\_size is passed to the Native layer, and the default value of stack\_size in the Java layer is always 0. In the FixStackSize function at the Native layer, the stack\_size will then be adjusted, and the code implementation is as follows. It can be seen that the final size of stack\_size is stack\_size += 1 \* MB. If the stack\_size we pass in is 0, the default size is 1 MB; if the stack\_size we pass in is -512KB, the stack\_size will become 512KB (1M - 512KB).&#x20;
+In the process of thread creation in the previous thread, we learned that when creating a thread at the Java layer, the stack_size is passed to the Native layer, and the default value of stack_size in the Java layer is always 0. In the FixStackSize function at the Native layer, the stack_size will then be adjusted, and the code implementation is as follows. It can be seen that the final size of stack_size is stack_size += 1 \* MB. If the stack_size we pass in is 0, the default size is 1 MB; if the stack_size we pass in is -512KB, the stack_size will become 512KB (1M - 512KB).&#x20;
 
 ```c++
 static size_t FixStackSize(size_t stack_size) {
@@ -1170,7 +1170,7 @@ public Thread(ThreadGroup group, Runnable target, String name,
 }
 ```
 
-However, since there are too many places in the application where threads are created, it seems difficult for us to modify all of them one by one. In fact, we don't need to manually modify them one by one. In the previous optimization, we have already converged most of the threads in the application to the common thread pool for creation. Therefore, at this time, we only need to modify the way threads are created in the common thread pool, and the thread pool just happens to support us creating threads ourselves. So we only need to pass in a custom ThreadFactory to meet the requirement. In our custom ThreadFactory, we create threads with a stack\_size of -512 KB, which can reduce the virtual memory occupied by the threads.&#x20;
+However, since there are too many places in the application where threads are created, it seems difficult for us to modify all of them one by one. In fact, we don't need to manually modify them one by one. In the previous optimization, we have already converged most of the threads in the application to the common thread pool for creation. Therefore, at this time, we only need to modify the way threads are created in the common thread pool, and the thread pool just happens to support us creating threads ourselves. So we only need to pass in a custom ThreadFactory to meet the requirement. In our custom ThreadFactory, we create threads with a stack_size of -512 KB, which can reduce the virtual memory occupied by the threads.&#x20;
 
 When we change the size of all thread stacks in the application to 512 KB, it may cause stack overflow in some threads with heavy tasks. At this time, we can collect the threads that will experience stack overflow through event tracking and control not to modify the size of these threads via the allowlist.&#x20;
 
@@ -1182,7 +1182,7 @@ By analyzing the maps file of the sample program in this book, it can be found t
 
 ![Figure 3-32 Webview memory data recorded in the maps file](https://raw.githubusercontent.com/helsonzhao/THE_ART_OF_ANDROID_PERFORMANCE_OPTIMIZATION/main/assets/chapter3_img_29.png)
 
-This block of virtual memory is actually the space reserved for webview, with a size of 1GB on 64-bit machines, 130MB on 32-bit machines, and 190MB on other non-ARM machines. This space is actually allocated in the Zygote process. During the Zygote startup process, the so library webviewchromiun\_loader is loaded and this block of virtual space is allocated, and a block of virtual memory is allocated through the reserveAddressSpaceInZygote method in the [WebViewLibraryLoader.java](https://cs.android.com/android/platform/superproject/+/master:frameworks/base/core/java/android/webkit/WebViewLibraryLoader.java) object, as shown in Figure 3-33. Subsequently, all application processes are forked from the Zygote process, so they will also retain this area.&#x20;
+This block of virtual memory is actually the space reserved for webview, with a size of 1GB on 64-bit machines, 130MB on 32-bit machines, and 190MB on other non-ARM machines. This space is actually allocated in the Zygote process. During the Zygote startup process, the so library webviewchromiun_loader is loaded and this block of virtual space is allocated, and a block of virtual memory is allocated through the reserveAddressSpaceInZygote method in the [WebViewLibraryLoader.java](https://cs.android.com/android/platform/superproject/+/master:frameworks/base/core/java/android/webkit/WebViewLibraryLoader.java) object, as shown in Figure 3-33. Subsequently, all application processes are forked from the Zygote process, so they will also retain this area.&#x20;
 
 ![Figure 3-33 Memory Allocation Function for Default Webview](https://raw.githubusercontent.com/helsonzhao/THE_ART_OF_ANDROID_PERFORMANCE_OPTIMIZATION/main/assets/chapter3_img_30.png)
 
@@ -1241,7 +1241,7 @@ fclose(fp);
 munmap(webview_addr, reservedSpaceSize)
 ```
 
-Upon seeing this, readers may think this solution is quite simple, but at this point, only half of it has been implemented. When we run this solution on a device with Android 9, we will find that the virtual memory space named libwebview reservation cannot be found in the maps file, thus rendering the solution ineffective. By examining the Android 9 source code, as shown in Figure 3-34, we can see that this virtual memory is allocated in the form of anonymous (MAP\_ANONYMOUS)
+Upon seeing this, readers may think this solution is quite simple, but at this point, only half of it has been implemented. When we run this solution on a device with Android 9, we will find that the virtual memory space named libwebview reservation cannot be found in the maps file, thus rendering the solution ineffective. By examining the Android 9 source code, as shown in Figure 3-34, we can see that this virtual memory is allocated in the form of anonymous (MAP_ANONYMOUS)
 
 ![Figure 3-34 WebView Memory Allocation Function in Android 9](https://raw.githubusercontent.com/helsonzhao/THE_ART_OF_ANDROID_PERFORMANCE_OPTIMIZATION/main/assets/chapter3_img_31.png)
 
@@ -1259,13 +1259,13 @@ First, by globally searching for gReservedAddress in the Android source code, as
 
 ![Figure 3-36 Code using gReservedAddress](https://raw.githubusercontent.com/helsonzhao/THE_ART_OF_ANDROID_PERFORMANCE_OPTIMIZATION/main/assets/chapter3_img_33.png)
 
-In the DoCreateRelroFile (source code shown in Figure 3-37) and DoLoadWithRelroFile (source code shown in Figure 3-38) methods, we can find that gReservedAddress and gReservedSize are encapsulated in the extinfo structure and passed as input parameters to the android\_dlopen\_ext function, which is a function in the libdl.so library.&#x20;
+In the DoCreateRelroFile (source code shown in Figure 3-37) and DoLoadWithRelroFile (source code shown in Figure 3-38) methods, we can find that gReservedAddress and gReservedSize are encapsulated in the extinfo structure and passed as input parameters to the android_dlopen_ext function, which is a function in the libdl.so library.&#x20;
 
 ![Figure 3-37 Source code of DoCreateRelroFile ](https://raw.githubusercontent.com/helsonzhao/THE_ART_OF_ANDROID_PERFORMANCE_OPTIMIZATION/main/assets/chapter3_img_34.png)
 
 ![Figure 3-38 Source Code of DoLoadWithRelroFile](https://raw.githubusercontent.com/helsonzhao/THE_ART_OF_ANDROID_PERFORMANCE_OPTIMIZATION/main/assets/chapter3_img_35.png)
 
-Previously, we have learned about PLT Hook technology, which is specifically designed to intercept the call functions of external libraries. For the webviewchromiun\_loader library, android\_dlopen\_ext happens to be an external function. Therefore, we only need to intercept the `android_dlopen_ext` function in the `webviewchromiun_loader` so through PLT Hook technology to obtain the extinfo data, and then obtain the values of gReservedAddress and gReservedSize. Here, I still uses bhook as a tool to demonstrate the specific code implementation:
+Previously, we have learned about PLT Hook technology, which is specifically designed to intercept the call functions of external libraries. For the webviewchromiun_loader library, android_dlopen_ext happens to be an external function. Therefore, we only need to intercept the `android_dlopen_ext` function in the `webviewchromiun_loader` so through PLT Hook technology to obtain the extinfo data, and then obtain the values of gReservedAddress and gReservedSize. Here, I still uses bhook as a tool to demonstrate the specific code implementation:
 
 ```c++
 // Use bhook to hook the android_dlopen_ext function in the webviewchromium_loader so library 
@@ -1278,7 +1278,7 @@ bytehook_stub_t bytehook_hook_single(
     void *hooked_arg);
 ```
 
-By using the bytehook\_hook\_single method, we can complete the interception of the android\_dlopen\_ext function call in the libwebviewchromium\_loader.so library. Next, we retrieve sReservedSpaceStart and sReservedSpaceSize in the custom hook function and release them. The code implementation is as follows. At this point, we will encounter a problem commonly encountered in Native Hook, that is, we do not have the structure of the input parameter function in the intercepted function. In this case, we only need to redefine one according to the original data structure.&#x20;
+By using the bytehook_hook_single method, we can complete the interception of the android_dlopen_ext function call in the libwebviewchromium_loader.so library. Next, we retrieve sReservedSpaceStart and sReservedSpaceSize in the custom hook function and release them. The code implementation is as follows. At this point, we will encounter a problem commonly encountered in Native Hook, that is, we do not have the structure of the input parameter function in the intercepted function. In this case, we only need to redefine one according to the original data structure.&#x20;
 
 ```c++
 /* extinfo is actually an android_dlextinfo structure,
@@ -1308,15 +1308,15 @@ static void* android_dlopen_ext_hook(const char* filepath, int flags, void* exti
 }
 ```
 
-After completing the above series of operations, we will find that the solution still does not take effect. This is because if the system's webview is not used in the process, neither the DoCreateRelroFile nor the DoLoadWithRelroFile function will be executed. If neither of these two functions is executed, android\_dlopen\_ext will not be called at all, and naturally the desired data cannot be obtained. Therefore, we need to actively call either of these two functions through code in the application. However, we cannot call these two functions by normally starting the webview, as this goes against the original intention of this optimization, which is to perform this optimization only when the process does not need to use the webview.
+After completing the above series of operations, we will find that the solution still does not take effect. This is because if the system's webview is not used in the process, neither the DoCreateRelroFile nor the DoLoadWithRelroFile function will be executed. If neither of these two functions is executed, android_dlopen_ext will not be called at all, and naturally the desired data cannot be obtained. Therefore, we need to actively call either of these two functions through code in the application. However, we cannot call these two functions by normally starting the webview, as this goes against the original intention of this optimization, which is to perform this optimization only when the process does not need to use the webview.
 
 How can these two functions be executed? After analyzing the source code, it will be found that it is actually very simple to actively call these two functions, because these two functions can actually be called through the two JNI methods nativeCreateRelroFile and LoadWithRelroFile, as shown in Figure 3-39.
 
 ![Figure 3-39 JNI call function for DoCreateRelroFile and DoLoadWithRelroFile](https://raw.githubusercontent.com/helsonzhao/THE_ART_OF_ANDROID_PERFORMANCE_OPTIMIZATION/main/assets/chapter3_img_36.png)
 
-At this point, readers may wonder if it is possible to achieve the goal simply by directly calling System.loadLibrary("webviewchromiun\_loader") in the Java layer and then invoking one of the JNI methods. The answer is no, because starting from Android 7.0, applications are no longer allowed to load system so libraries, and webviewchromiun\_loader is a system so library, so it cannot be loaded properly. Since the so library cannot be loaded properly, it is naturally impossible to directly call the two native functions LoadWithRelroFile or CreateRelroFile in the Java layer.
+At this point, readers may wonder if it is possible to achieve the goal simply by directly calling System.loadLibrary("webviewchromiun_loader") in the Java layer and then invoking one of the JNI methods. The answer is no, because starting from Android 7.0, applications are no longer allowed to load system so libraries, and webviewchromiun_loader is a system so library, so it cannot be loaded properly. Since the so library cannot be loaded properly, it is naturally impossible to directly call the two native functions LoadWithRelroFile or CreateRelroFile in the Java layer.
 
-Although these two methods cannot be called at the Java layer, they can be called at the Native layer. By using the CallStaticIntMethod provided by JNI, the call to the static method at the Java layer can be completed. Here, I take the call to the nativeLoadWithRelroFile function as an example. Its input parameters include "lib, relro, clazzLoader", where lib is the name of the so library webviewchromiun\_loader, and relro is the path of this so library. We only need to obtain the corresponding Java object and methodId of this function through env->FindClass, and then we can execute this method. The code implementation process is as follows:
+Although these two methods cannot be called at the Java layer, they can be called at the Native layer. By using the CallStaticIntMethod provided by JNI, the call to the static method at the Java layer can be completed. Here, I take the call to the nativeLoadWithRelroFile function as an example. Its input parameters include "lib, relro, clazzLoader", where lib is the name of the so library webviewchromiun_loader, and relro is the path of this so library. We only need to obtain the corresponding Java object and methodId of this function through env->FindClass, and then we can execute this method. The code implementation process is as follows:
 
 ```c++
 // Call the nativeLoadWithRelroFile function at the JNI layer
@@ -1339,7 +1339,7 @@ static bool LocateReservedSpaceByProbing(JNIEnv* env,
 }
 ```
 
-Through the above process, the application on 32-bit devices has an additional 130M of available virtual memory. In addition to the above-mentioned solution, we have other solutions that can achieve the same goal. For example, as an uninitialized global variable, gReservedAddress will be stored in the bss section. Therefore, after parsing the maps file, finding the address of the webviewchromiun\_loader so library and converting it to ELF format, the value of gReservedAddress can be obtained by searching and traversing the BSS section. In fact, the webviewchromiun\_loader so library has only 7 global variables, so there are only 7 entries in the BSS section, and we can easily find the value of gReservedAddress. Readers interested in this solution can also try it out themselves.&#x20;
+Through the above process, the application on 32-bit devices has an additional 130M of available virtual memory. In addition to the above-mentioned solution, we have other solutions that can achieve the same goal. For example, as an uninitialized global variable, gReservedAddress will be stored in the bss section. Therefore, after parsing the maps file, finding the address of the webviewchromiun_loader so library and converting it to ELF format, the value of gReservedAddress can be obtained by searching and traversing the BSS section. In fact, the webviewchromiun_loader so library has only 7 global variables, so there are only 7 entries in the BSS section, and we can easily find the value of gReservedAddress. Readers interested in this solution can also try it out themselves.&#x20;
 
 | Source code appearing in this chapter:<br />MAT Official Website: <https://eclipse.dev/mat/downloads.php><br />malloc_debug: <https://android.googlesource.com/platform/bionic/+/master/libc/malloc_debug/><br />memory-leak-detector: <https://github.com/bytedance/memory-leak-detector><br />Thread.java: <br /><https://cs.android.com/android/platform/superproject/+/android-14.0.0_r9:libcore/ojluni/src/main/java/java/lang/Thread.java><br />java_lang_Thread.cc: <br /><https://cs.android.com/android/platform/superproject/+/android-14.0.0_r9:art/runtime/native/java_lang_Thread.cc><br />thread.cc: <https://cs.android.com/android/platform/superproject/+/android-14.0.0_r9:art/runtime/thread.cc> |
 | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |

@@ -48,7 +48,7 @@ Among the directories and files above, the ones that account for the bulk of the
 
 Java code generates class bytecode files after compilation, while the dex file is actually just a further integration of class bytecode files, placing multiple class files into a single dex file. The advantage of doing this is that it reduces redundancy, as duplicate data in multiple class files will be merged into one. According to official data, the size of the same Java code compiled into a dex file is only about 50% of the size of the class file.
 
-From Figure 8-2, we can understand the differences between class files and dex files as well as the composition of their data segments. It should be noted that the data segments in class files do not have a one-to-one correspondence with those in dex files. For example, class files have a constant pool, but dex files do not;For example, the data in the method table (Method) that stores data such as method names, descriptors, and bytecode in a class file is actually scattered across multiple data segments in the dex file, such as Methods\_ids, Data, and String\_ids.&#x20;
+From Figure 8-2, we can understand the differences between class files and dex files as well as the composition of their data segments. It should be noted that the data segments in class files do not have a one-to-one correspondence with those in dex files. For example, class files have a constant pool, but dex files do not;For example, the data in the method table (Method) that stores data such as method names, descriptors, and bytecode in a class file is actually scattered across multiple data segments in the dex file, such as Methods_ids, Data, and String_ids.&#x20;
 
 ![Figure 8-2 Comparison of class files and dex files](https://raw.githubusercontent.com/helsonzhao/THE_ART_OF_ANDROID_PERFORMANCE_OPTIMIZATION/main/assets/chapter8_img_2.png)
 
@@ -57,12 +57,12 @@ Understanding which data exists in each data segment of a file can help us bette
 | **Data Segment** | **Explanation**                                                                                                                              |
 | ---------------- | -------------------------------------------------------------------------------------------------------------------------------------------- |
 | Header           | dex file header, which records descriptive data such as file information                                                                     |
-| String\_ids      | String data index, which records the offset of each string in the data area                                                                  |
-| Type\_ids        | Type data index, which records the string index of each type                                                                                 |
-| Proto\_ids       | Prototype data index, which records the string of the method declaration, the return type string, and the parameter list                     |
-| Field\_ids       | Field data index, which records the class it belongs to, type, and method name                                                               |
-| Method\_ids      | Class method index, recording the class name to which the method belongs                                                                     |
-| Class\_def       | Class definition data, which records various information of the specified class, including interfaces, superclasses, and class data offsets  |
+| String_ids      | String data index, which records the offset of each string in the data area                                                                  |
+| Type_ids        | Type data index, which records the string index of each type                                                                                 |
+| Proto_ids       | Prototype data index, which records the string of the method declaration, the return type string, and the parameter list                     |
+| Field_ids       | Field data index, which records the class it belongs to, type, and method name                                                               |
+| Method_ids      | Class method index, recording the class name to which the method belongs                                                                     |
+| Class_def       | Class definition data, which records various information of the specified class, including interfaces, superclasses, and class data offsets  |
 | Data             | Data area, the area where data is actually stored                                                                                            |
 
 The index area does not store the actual data; the actual data is stored in the Data data area. During the program's operation, it will use the index to search for the actual data in the data area.&#x20;

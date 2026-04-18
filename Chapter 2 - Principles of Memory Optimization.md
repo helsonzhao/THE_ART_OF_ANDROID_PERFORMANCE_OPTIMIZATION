@@ -102,11 +102,11 @@ Since the number of sections is relatively large, we will only introduce some of
 
   | function            | Symbol Name      |
   | ------------------- | ---------------- |
-  | int func(int)       | \_Z4funci        |
-  | float func(float)   | \_Z4funcf        |
-  | int Test::func(int) | \_ZN4Test4funcEi |
+  | int func(int)       | _Z4funci        |
+  | float func(float)   | _Z4funcf        |
+  | int Test::func(int) | _ZN4Test4funcEi |
 
-  I takes the function int Test::func(int) as an example to explain. When GCC generates symbols for methods, they all start with \_Z. For nested names, N follows immediately, then the lengths and names of each namespace and class, so it's 4Test4func, and ends with E. Non-nested method names do not need to end with E. Finally, it's followed by the parameter types. So the symbol for this function is \_ZN4Test4funcEi. These symbol information will be bound to corresponding attributes such as types, information, addresses, etc., to form symbol entries and stored in the symbol table. The symbol table can mainly help us debug and locate problems during program execution. However, for the sake of package size and security, we often remove the symbol table from the so library during online runtime.&#x20;
+  I takes the function int Test::func(int) as an example to explain. When GCC generates symbols for methods, they all start with _Z. For nested names, N follows immediately, then the lengths and names of each namespace and class, so it's 4Test4func, and ends with E. Non-nested method names do not need to end with E. Finally, it's followed by the parameter types. So the symbol for this function is _ZN4Test4funcEi. These symbol information will be bound to corresponding attributes such as types, information, addresses, etc., to form symbol entries and stored in the symbol table. The symbol table can mainly help us debug and locate problems during program execution. However, for the sake of package size and security, we often remove the symbol table from the so library during online runtime.&#x20;
 
 ### 2. program segment
 
@@ -240,11 +240,11 @@ Having understood the composition of the Java heap, we can then read the source 
 
 2\) The code in the second part is mainly about creating ZygoteSpace, and the code is as follows.
 
-3\) The code in the third part mainly creates MainSpace. According to the code logic, if the type of the foreground GC mechanism (foreground\_collector\_type\_) is not Concurrent Copying (kCollectorTypeCC), a space named "main space" with a size of capacity\_, where capacity\_ is equivalent to the size configured by the system "dalvik.vm.heapsize" (mostly 512 MB), will be created. If the foreground or background GC mechanism is Semi-Space GC (kCollectorTypeSS), a space named "main space 1" will be created. Only the GC mechanisms in systems between Android 5 and Android 7 meet these two conditions, so two spaces named "main space" and "main space 1" will be created in these systems.
+3\) The code in the third part mainly creates MainSpace. According to the code logic, if the type of the foreground GC mechanism (foreground_collector_type_) is not Concurrent Copying (kCollectorTypeCC), a space named "main space" with a size of capacity_, where capacity_ is equivalent to the size configured by the system "dalvik.vm.heapsize" (mostly 512 MB), will be created. If the foreground or background GC mechanism is Semi-Space GC (kCollectorTypeSS), a space named "main space 1" will be created. Only the GC mechanisms in systems between Android 5 and Android 7 meet these two conditions, so two spaces named "main space" and "main space 1" will be created in these systems.
 
 4\) In the code of the fourth part, the previously created ZygoteSpace will be managed through DlMallocSpace, as shown below.
 
-5\) In the code of the fifth part, it will check if the foreground GC mechanism is concurrent copying collection. If so, it will create a space named "main space (region space)" with a size of 'capacity\_' \* 2, which is 1 GB in total. However, on some devices, 'capacity\_' has been adjusted to 256 MB, in which case the total space is only 512 MB, and it will be directly placed into RegionSpace for management. Since the foreground GC mechanism is concurrent copying collection only in Android 8 and above, this space will only exist in Android 8 and above systems. From the first line of the maps file in Figure 2-5, we can also see the 512 MB "main space (region space)".
+5\) In the code of the fifth part, it will check if the foreground GC mechanism is concurrent copying collection. If so, it will create a space named "main space (region space)" with a size of 'capacity_' \* 2, which is 1 GB in total. However, on some devices, 'capacity_' has been adjusted to 256 MB, in which case the total space is only 512 MB, and it will be directly placed into RegionSpace for management. Since the foreground GC mechanism is concurrent copying collection only in Android 8 and above, this space will only exist in Android 8 and above systems. From the first line of the maps file in Figure 2-5, we can also see the 512 MB "main space (region space)".
 
 If the foreground GC mechanism is not concurrent copying and recycling, that is, in versions below Android 8, it will first determine whether the foreground GC mechanism is MovingGc. If so, the two spaces "main space" and "main space 1" created in the third part will be respectively placed into two BumpPointerSpaces for management.&#x20;
 
@@ -276,7 +276,7 @@ There are two ways to create and load an object in Java, namely explicit loading
 
 Through the above code process, it can be seen that if the Java object applying for memory is a large object, AllocLargeObject will be called to allocate in LargeObjectSpace; if not, TryToAllocate will be called to allocate in MainSpace. If the allocation fails, GC will be executed and then the allocation will continue.&#x20;
 
-What is a large object? From the code of the `ShouldAllocLargeObject` judgment interface below, we can see that an object is considered a large object if the requested memory is greater than or equal to large\_object\_threshold\_ (which is 12 KB) and it is a primitive type array or a string.
+What is a large object? From the code of the `ShouldAllocLargeObject` judgment interface below, we can see that an object is considered a large object if the requested memory is greater than or equal to large_object_threshold_ (which is 12 KB) and it is a primitive type array or a string.
 
 2\) Release Process
 

@@ -394,7 +394,7 @@ private final class BroadcastHandler extends Handler {
 }
 ```
 
-This Handler only processes two tasks, one is the BROADCAST\_INTENT\_MSG message for broadcast startup, and the other is the BROADCAST\_TIMEOUT\_MSG message for triggering the ANR of broadcast timeout. Let's first take a look at the processNextBroadcast function, which is the entry function for broadcast startup. The code of this function is as follows:&#x20;
+This Handler only processes two tasks, one is the BROADCAST_INTENT_MSG message for broadcast startup, and the other is the BROADCAST_TIMEOUT_MSG message for triggering the ANR of broadcast timeout. Let's first take a look at the processNextBroadcast function, which is the entry function for broadcast startup. The code of this function is as follows:&#x20;
 
 ```c++
 public void processNextBroadcastLocked(boolean fromMsg, boolean skipOomAdj) {
@@ -507,7 +507,7 @@ final void setBroadcastTimeoutLocked(long timeoutTime) {
 }
 ```
 
-As can be seen from the code, the setBroadcastTimeoutLocked method sends an ANR trigger task with a delay of timeoutTime and a message type of BROADCAST\_TIMEOUT\_MSG to mHander. If this task is not removed within the timeoutTime period, the broadcastTimeoutLocked function corresponding to the BROADCAST\_TIMEOUT\_MSG message will be executed to trigger an ANR. The simplified code implementation of this method is as follows:&#x20;
+As can be seen from the code, the setBroadcastTimeoutLocked method sends an ANR trigger task with a delay of timeoutTime and a message type of BROADCAST_TIMEOUT_MSG to mHander. If this task is not removed within the timeoutTime period, the broadcastTimeoutLocked function corresponding to the BROADCAST_TIMEOUT_MSG message will be executed to trigger an ANR. The simplified code implementation of this method is as follows:&#x20;
 
 ```c++
 final void broadcastTimeoutLocked(boolean fromMsg) {
@@ -576,13 +576,13 @@ private void realStartServiceLocked(ServiceRecord r, ProcessRecord app,
 
 The explanation of the main process in this method is as follows:&#x20;
 
-1\) First, call the bumpServiceExecutinLoced method, which sends a SERVICE\_TIMEOUT\_MSG message via the Handler, that is, the ANR trigger message. The delay time of this message depends on whether the service is a foreground or background service. The timeout for foreground services is 20 seconds, and the timeout for background services is 200 seconds.
+1\) First, call the bumpServiceExecutinLoced method, which sends a SERVICE_TIMEOUT_MSG message via the Handler, that is, the ANR trigger message. The delay time of this message depends on whether the service is a foreground or background service. The timeout for foreground services is 20 seconds, and the timeout for background services is 200 seconds.
 
 2\) Then, it notifies the process where the target service resides through the Binder mechanism to execute the service creation or binding operation. The process where the target service resides will schedule the onCreate lifecycle of the service through the scheduleCreateService method of the ActivityThread class.
 
-3\) Finally, after the service completes the creation or binding operation, the serviceDoneExecutingLocked method is executed, which removes the previously sent SERVICE\_TIMEOUT\_MSG message, indicating that the service has started or bound normally and will not trigger an ANR.
+3\) Finally, after the service completes the creation or binding operation, the serviceDoneExecutingLocked method is executed, which removes the previously sent SERVICE_TIMEOUT_MSG message, indicating that the service has started or bound normally and will not trigger an ANR.
 
-If the SERVICE\_TIMEOUT\_MSG message is not removed within the specified time, the serviceTimeout method will be executed to trigger ANR, and the triggering of ANR is also carried out by calling the appNotResponding method of AMS.&#x20;
+If the SERVICE_TIMEOUT_MSG message is not removed within the specified time, the serviceTimeout method will be executed to trigger ANR, and the triggering of ANR is also carried out by calling the appNotResponding method of AMS.&#x20;
 
 ### 4. ContentProvider TimeOut&#x20;
 
@@ -627,7 +627,7 @@ private void attachApplicationLocked(@NonNull IApplicationThread thread,
 }
 ```
 
-From the above code, we can know that before calling the bindApplication method of the target program, AMS will first send a delayed task of CONTENT\_PROVIDER\_PUBLISH\_TIMEOUT to the Handler. This task will trigger an ANR for content provider publishing timeout. After the target program publishes the ContentProvider in the bindApplication method, it will notify AMS to remove this task message. From this, we can also find that the publishing of the content provider occurs during the program startup process, so when the content provider publishing takes too long and triggers an ANR, it will directly affect the normal startup of the program.
+From the above code, we can know that before calling the bindApplication method of the target program, AMS will first send a delayed task of CONTENT_PROVIDER_PUBLISH_TIMEOUT to the Handler. This task will trigger an ANR for content provider publishing timeout. After the target program publishes the ContentProvider in the bindApplication method, it will notify AMS to remove this task message. From this, we can also find that the publishing of the content provider occurs during the program startup process, so when the content provider publishing takes too long and triggers an ANR, it will directly affect the normal startup of the program.
 
 ## 6.2.2 Common ANR Attributions
 
@@ -871,15 +871,15 @@ Below is an explanation of the input parameters of this function:
 
 * act: A pointer to an instance of the sigaction structure, and the explanation of the structure parameters is as follows
 
-  * sa\_handler: A function pointer that points to the function used to handle signals. When the corresponding signal is received, the system will call this function for processing.
+  * sa_handler: A function pointer that points to the function used to handle signals. When the corresponding signal is received, the system will call this function for processing.
 
-  * sa\_sigaction: A function pointer that specifies the function used to handle signals. Compared to sa\_handler, it can receive more parameters, including the signal number, signal additional information, and context information. When sa\_handler is not null, sa\_sigaction will be ignored.
+  * sa_sigaction: A function pointer that specifies the function used to handle signals. Compared to sa_handler, it can receive more parameters, including the signal number, signal additional information, and context information. When sa_handler is not null, sa_sigaction will be ignored.
 
-  * sa\_mask: Specifies which signals should be blocked during the execution of the signal handling function
+  * sa_mask: Specifies which signals should be blocked during the execution of the signal handling function
 
-  * sa\_flags: Used to specify the representation options for signal handling. Common flags include SA\_RESTART, which indicates automatically restarting system calls interrupted by signals when the signal handling function returns; SA\_NOCLDSTOP, which indicates ignoring signals for child process stop or termination; and SA\_SIGINFO, which indicates using sa\_sigaction instead of sa\_handler as the signal handling function.
+  * sa_flags: Used to specify the representation options for signal handling. Common flags include SA_RESTART, which indicates automatically restarting system calls interrupted by signals when the signal handling function returns; SA_NOCLDSTOP, which indicates ignoring signals for child process stop or termination; and SA_SIGINFO, which indicates using sa_sigaction instead of sa_handler as the signal handling function.
 
-  * sa\_restorer: Deprecated, no need to set.
+  * sa_restorer: Deprecated, no need to set.
 
 * oldact: Points to a structure of type sigaction, used to store information about the previous signal handling function and options. The sigaction function registering a signal will overwrite the original signal registration function. If you need to maintain the integrity of the original signal handling function, you can use the oldact parameter to save the original signal handling method and call it at an appropriate time.
 
