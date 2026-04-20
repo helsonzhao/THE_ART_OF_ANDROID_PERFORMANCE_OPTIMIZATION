@@ -40,7 +40,7 @@ Virtual memory technology is equivalent to allocating each process a exclusive a
 
 ![Figure 2-1 Simplified Model Diagram of Virtual Memory](assets/chapter2_img_1.png)
 
-The size of virtual memory is 2^32 bytes, i.e., 4GB, on a 32-bit system; on a 64-bit system, it is 2^48 bytes, i.e., 16TB. The reason it is not 2^64 ByteDance is that 2^48 bytes is already large enough, and the space of 2^64 bytes would only cause the system to consume more resources to maintain and manage this space. Virtual memory is managed and mapped to physical memory on a page basis, with each page being 4KB in size.&#x20;
+The size of virtual memory is 2^32 bytes, i.e., 4GB, on a 32-bit system; on a 64-bit system, it is 2^48 bytes, i.e., 16TB. The reason is that 2^48 bytes is already large enough, and the space of 2^64 bytes would only cause the system to consume more resources to maintain and manage this space. Virtual memory is managed and mapped to physical memory on a page basis, with each page being 4KB in size.&#x20;
 
 Here, I assumes a scenario where a 32-bit system has only 2GB of physical memory, and uses the mapping model of virtual memory and physical memory as an example to help readers better understand. This scenario is shown in Figure 2-2, where the 4GB virtual memory is divided into 4194304 pages, each with a size of 4KB. When a page in virtual memory needs to write data, it maps a 4KB block of physical memory; if a page in virtual memory does not write data, no mapping occurs. The address mapping from virtual memory to physical memory is completed by the  memory management  unit (MMU) of the computer, which belongs to the hardware rather than the system software, so the mapping speed is very fast.&#x20;
 
